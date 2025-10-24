@@ -1,0 +1,669 @@
+# 🏗️ LinguaFlow 架构设计文档
+
+## 目录
+1. [系统概述](#系统概述)
+2. [技术选型](#技术选型)
+3. [架构设计](#架构设计)
+4. [数据库设计](#数据库设计)
+5. [API设计](#api设计)
+6. [前端架构](#前端架构)
+7. [性能优化](#性能优化)
+8. [安全设计](#安全设计)
+
+---
+
+## 系统概述
+
+### 产品定位
+LinguaFlow是一个移动端优先的社交化英语学习平台，通过小说阅读和游戏化闯关，提供沉浸式的英语学习体验。
+
+### 核心功能
+1. **Feed流**: 类X的社交信息流
+2. **小说阅读**: 电子书阅读器
+3. **闯关系统**: 多样化英语挑战
+4. **AI评分**: 智能评分和反馈
+5. **社交互动**: 点赞、评论、分享
+
+### 用户流程
+```
+Feed流浏览 → 点击卡片 → 查看详情 → 开始学习 
+  → 阅读章节 → 完成挑战 → 获得反馈 → 分享成果
+```
+
+---
+
+## 技术选型
+
+### 前端技术栈
+
+#### 核心框架
+- **Next.js 15**: 
+  - App Router架构
+  - SSR/SSG优化SEO
+  - API Routes简化后端
+  - 图片优化
+  
+- **React 19**:
+  - 最新特性支持
+  - 并发渲染
+  - Suspense边界
+
+- **TypeScript**:
+  - 类型安全
+  - 更好的IDE支持
+  - 减少运行时错误
+
+#### UI框架
+- **Tailwind CSS 4**:
+  - 原子化CSS
+  - 高度可定制
+  - 优秀的DX
+  
+- **Framer Motion**:
+  - 声明式动画
+  - Spring物理动画
+  - 手势支持
+
+#### 状态管理
+- **Zustand**: 轻量级全局状态
+- **TanStack Query**: 服务端状态缓存
+- **Jotai**: 原子化状态（细粒度更新）
+
+#### 性能优化
+- **React Virtuoso**: 虚拟滚动
+- **next/image**: 图片优化
+- **Dynamic Import**: 代码分割
+
+### 后端技术栈
+
+#### Supabase生态
+- **PostgreSQL**: 关系数据库
+- **Supabase Auth**: 用户认证
+- **Supabase Storage**: 文件存储
+- **Supabase Realtime**: WebSocket实时订阅
+- **Edge Functions**: Serverless函数
+
+#### AI集成
+- **OpenAI GPT-4**: 内容生成、评分
+- **Anthropic Claude**: 教学反馈（备选）
+
+---
+
+## 架构设计
+
+### 整体架构图
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      用户设备                             │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │            Next.js App (PWA)                      │   │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐ │   │
+│  │  │  Feed流    │  │  阅读器    │  │  挑战系统  │ │   │
+│  │  └────────────┘  └────────────┘  └────────────┘ │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│                   Supabase Cloud                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │  PostgreSQL  │  │    Auth      │  │   Storage    │  │
+│  └──────────────┘  └──────────────┘  └──────────────┘  │
+│  ┌──────────────┐  ┌──────────────┐                    │
+│  │   Realtime   │  │ Edge Functions│                    │
+│  └──────────────┘  └──────────────┘                    │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│                    AI服务                                │
+│  ┌──────────────┐  ┌──────────────┐                    │
+│  │  OpenAI API  │  │ Anthropic API│                    │
+│  └──────────────┘  └──────────────┘                    │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 数据流设计
+
+#### Feed流数据流
+```
+用户请求 → Next.js SSR → Supabase Query → 
+  → 返回数据 → 客户端缓存 → 渲染Feed
+  
+实时更新 → Supabase Realtime → WebSocket → 
+  → 客户端接收 → 乐观更新 → 横幅提示
+```
+
+#### 学习流程数据流
+```
+开始阅读 → 记录进度 → 完成阅读 → 触发挑战
+  → 提交答案 → Edge Function → AI评分
+  → 返回结果 → 更新进度 → 解锁下一关
+```
+
+---
+
+## 数据库设计
+
+### ER图
+
+```
+┌─────────────┐       ┌─────────────┐       ┌─────────────┐
+│   profiles  │───────│ feed_cards  │───────│interactions │
+└─────────────┘       └─────────────┘       └─────────────┘
+       │                     │
+       │                     │
+       ↓                     ↓
+┌─────────────┐       ┌─────────────┐
+│user_progress│       │novel_chapters│
+└─────────────┘       └─────────────┘
+       │                     │
+       │                     ↓
+       │              ┌─────────────┐
+       └──────────────│ challenges  │
+                      └─────────────┘
+                            │
+                            ↓
+                      ┌─────────────┐
+                      │challenge_   │
+                      │  results    │
+                      └─────────────┘
+```
+
+### 核心表设计
+
+#### profiles (用户表)
+```sql
+- id: UUID (PK, FK to auth.users)
+- username: VARCHAR(50) UNIQUE
+- full_name: TEXT
+- avatar_url: TEXT
+- level: INTEGER
+- experience: INTEGER
+- streak_days: INTEGER
+```
+
+#### feed_cards (Feed卡片表)
+```sql
+- id: UUID (PK)
+- type: VARCHAR(20) -- 'novel', 'text', 'image'...
+- author_id: UUID (FK to profiles)
+- content: JSONB -- 灵活存储不同类型内容
+- likes_count: INTEGER
+- comments_count: INTEGER
+- visibility: VARCHAR(20)
+```
+
+#### novel_chapters (章节表)
+```sql
+- id: UUID (PK)
+- feed_card_id: UUID (FK)
+- chapter_number: INTEGER
+- title: VARCHAR(255)
+- content: TEXT
+- difficulty_level: INTEGER (1-10)
+- key_vocabulary: JSONB
+- grammar_points: JSONB
+```
+
+#### challenges (挑战表)
+```sql
+- id: UUID (PK)
+- chapter_id: UUID (FK)
+- type: VARCHAR(20) -- 'vocabulary', 'grammar'...
+- order_index: INTEGER
+- config: JSONB -- 挑战配置
+- passing_score: INTEGER
+```
+
+#### user_progress (用户进度表)
+```sql
+- id: UUID (PK)
+- user_id: UUID (FK)
+- chapter_id: UUID (FK)
+- status: VARCHAR(20)
+- best_score: INTEGER
+- attempts: INTEGER
+- challenges_completed: JSONB
+```
+
+### 索引策略
+
+```sql
+-- Feed流查询优化
+CREATE INDEX idx_feed_cards_created ON feed_cards(created_at DESC);
+CREATE INDEX idx_feed_cards_type ON feed_cards(type);
+
+-- 用户进度查询优化
+CREATE INDEX idx_progress_user ON user_progress(user_id);
+CREATE INDEX idx_progress_status ON user_progress(status);
+
+-- 全文搜索
+CREATE INDEX idx_feed_cards_search ON feed_cards 
+  USING gin(search_vector);
+```
+
+### RLS策略
+
+```sql
+-- 用户只能修改自己的数据
+CREATE POLICY "Users can update own profile"
+  ON profiles FOR UPDATE
+  USING (auth.uid() = id);
+
+-- 公开内容所有人可见
+CREATE POLICY "Public cards are viewable"
+  ON feed_cards FOR SELECT
+  USING (visibility = 'public');
+```
+
+---
+
+## API设计
+
+### RESTful API
+
+#### Feed流API
+```typescript
+GET /api/feed
+  Query: { cursor?, limit?, type? }
+  Response: { cards: FeedCard[], nextCursor?, hasMore }
+
+GET /api/feed/:id
+  Response: FeedCard
+
+POST /api/feed
+  Body: { type, content, ... }
+  Response: FeedCard
+```
+
+#### 学习系统API
+```typescript
+GET /api/chapters/:id
+  Response: Chapter
+
+GET /api/challenges/:chapterId
+  Response: Challenge[]
+
+POST /api/challenges/:id/submit
+  Body: { answer: UserAnswer }
+  Response: ChallengeResult
+```
+
+#### 社交互动API
+```typescript
+POST /api/interactions
+  Body: { targetId, type, content? }
+  Response: Interaction
+
+DELETE /api/interactions/:id
+  Response: { success: boolean }
+```
+
+### Edge Functions
+
+#### AI评分函数
+```typescript
+// supabase/functions/score-challenge/index.ts
+POST /functions/v1/score-challenge
+  Body: { 
+    challengeId: string
+    userAnswer: any
+    context: LearningContext
+  }
+  Response: {
+    score: number
+    feedback: string
+    suggestions: string[]
+  }
+```
+
+#### AI反馈函数
+```typescript
+// supabase/functions/generate-feedback/index.ts
+POST /functions/v1/generate-feedback
+  Body: {
+    userId: string
+    progressData: UserProgress[]
+  }
+  Response: AIFeedback
+```
+
+---
+
+## 前端架构
+
+### 组件层级
+
+```
+App
+├── Layout
+│   ├── TopNav
+│   ├── Main
+│   │   ├── FeedPage
+│   │   │   ├── FeedContainer
+│   │   │   │   └── CardFactory
+│   │   │   │       ├── NovelCard
+│   │   │   │       ├── TextCard
+│   │   │   │       └── MediaCard
+│   │   │   └── PullToRefresh
+│   │   ├── CardDetailPage
+│   │   └── LearnPage
+│   │       ├── ReaderView
+│   │       ├── ChallengeView
+│   │       │   ├── VocabularyChallenge
+│   │       │   ├── GrammarChallenge
+│   │       │   └── ComprehensionChallenge
+│   │       └── ResultView
+│   └── BottomNav
+└── Providers
+    ├── ThemeProvider
+    ├── QueryProvider
+    └── AuthProvider
+```
+
+### 状态管理策略
+
+#### Zustand (全局状态)
+```typescript
+// 用户状态
+interface UserStore {
+  user: User | null
+  setUser: (user: User) => void
+  logout: () => void
+}
+
+// UI状态
+interface UIStore {
+  theme: 'light' | 'dark'
+  bottomNavVisible: boolean
+  setTheme: (theme) => void
+}
+```
+
+#### TanStack Query (服务端状态)
+```typescript
+// Feed查询
+const { data, fetchNextPage } = useInfiniteQuery({
+  queryKey: ['feed'],
+  queryFn: fetchFeed,
+  getNextPageParam: (lastPage) => lastPage.nextCursor,
+})
+
+// 实时订阅
+useEffect(() => {
+  const channel = supabase
+    .channel('feed-changes')
+    .on('postgres_changes', { ... }, handler)
+    .subscribe()
+  
+  return () => supabase.removeChannel(channel)
+}, [])
+```
+
+### 路由设计
+
+```
+/                     → 重定向到 /feed
+/feed                 → Feed流首页
+/card/:id             → 卡片详情页
+/learn/:chapterId/read      → 阅读页面
+/learn/:chapterId/challenge → 挑战页面
+/learn/:chapterId/result    → 结果页面
+/profile/:userId      → 用户主页
+/settings             → 设置页面
+```
+
+---
+
+## 性能优化
+
+### 前端优化
+
+#### 1. 虚拟滚动
+```typescript
+// 使用React Virtuoso
+<Virtuoso
+  data={cards}
+  overscan={200}
+  itemContent={renderCard}
+/>
+```
+
+#### 2. 图片优化
+```typescript
+// 使用Next/Image
+<Image
+  src={url}
+  width={800}
+  height={600}
+  placeholder="blur"
+  loading="lazy"
+/>
+```
+
+#### 3. 代码分割
+```typescript
+// 动态导入
+const ChallengeModule = dynamic(
+  () => import('@/components/learn/Challenge'),
+  { loading: () => <Skeleton /> }
+)
+```
+
+#### 4. 预加载
+```typescript
+// 预加载下一页数据
+const { prefetchNextPage } = useInfiniteQuery(...)
+useEffect(() => {
+  if (shouldPrefetch) prefetchNextPage()
+}, [shouldPrefetch])
+```
+
+### 后端优化
+
+#### 1. 数据库查询优化
+```sql
+-- 使用视图预计算
+CREATE VIEW feed_with_details AS
+SELECT fc.*, p.username, ...
+FROM feed_cards fc
+LEFT JOIN profiles p ON fc.author_id = p.id;
+
+-- 使用索引
+CREATE INDEX idx_feed_created ON feed_cards(created_at DESC);
+```
+
+#### 2. 缓存策略
+```typescript
+// TanStack Query缓存
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 2 * 60 * 1000, // 2分钟
+      cacheTime: 5 * 60 * 1000, // 5分钟
+    },
+  },
+})
+```
+
+#### 3. ISR策略
+```typescript
+// 静态生成 + 增量更新
+export const revalidate = 60 // 60秒
+
+export async function generateStaticParams() {
+  const cards = await getFeaturedCards()
+  return cards.map(card => ({ id: card.id }))
+}
+```
+
+---
+
+## 安全设计
+
+### 认证和授权
+
+#### 1. Supabase Auth
+```typescript
+// 用户注册
+const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+})
+
+// 用户登录
+const { data, error } = await supabase.auth.signInWithPassword({
+  email,
+  password,
+})
+```
+
+#### 2. RLS策略
+```sql
+-- 用户只能修改自己的数据
+CREATE POLICY "Users update own data"
+  ON user_progress FOR UPDATE
+  USING (auth.uid() = user_id);
+```
+
+### 数据验证
+
+#### 1. Zod验证
+```typescript
+const FeedCardSchema = z.object({
+  type: z.enum(['novel', 'text', 'image']),
+  title: z.string().min(1).max(255),
+  content: z.record(z.any()),
+})
+```
+
+#### 2. API验证
+```typescript
+// API Route
+export async function POST(req: Request) {
+  const body = await req.json()
+  const validated = FeedCardSchema.parse(body)
+  // ...
+}
+```
+
+### XSS防护
+
+```typescript
+// 使用DOMPurify清理HTML
+import DOMPurify from 'dompurify'
+
+const clean = DOMPurify.sanitize(userContent)
+```
+
+### CSRF防护
+
+```typescript
+// Next.js自动处理CSRF
+// 使用SameSite cookies
+```
+
+---
+
+## 监控和日志
+
+### 性能监控
+```typescript
+// Vercel Analytics
+import { Analytics } from '@vercel/analytics/react'
+
+<Analytics />
+```
+
+### 错误追踪
+```typescript
+// Sentry
+import * as Sentry from '@sentry/nextjs'
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+})
+```
+
+### 日志记录
+```typescript
+// 结构化日志
+console.log({
+  level: 'info',
+  message: 'User completed challenge',
+  userId,
+  challengeId,
+  score,
+})
+```
+
+---
+
+## 部署架构
+
+### 生产环境
+
+```
+┌─────────────────────────────────────┐
+│         Vercel Edge Network         │
+│  ┌───────────────────────────────┐  │
+│  │     Next.js Application       │  │
+│  │  (SSR + Static + API Routes)  │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
+              │
+              ↓
+┌─────────────────────────────────────┐
+│       Supabase Cloud (US West)      │
+│  ┌──────────┐  ┌──────────┐        │
+│  │PostgreSQL│  │  Storage │        │
+│  └──────────┘  └──────────┘        │
+└─────────────────────────────────────┘
+```
+
+### CI/CD流程
+
+```
+Git Push → GitHub Actions
+  → Run Tests
+  → Build
+  → Deploy to Vercel (Preview)
+  → Manual Approval
+  → Deploy to Production
+```
+
+---
+
+## 扩展性设计
+
+### 水平扩展
+- Supabase自动扩展
+- Vercel Edge Functions全球分布
+- CDN缓存静态资源
+
+### 垂直扩展
+- 数据库连接池
+- 读写分离
+- 缓存层(Redis)
+
+### 功能扩展
+- 插件化挑战系统
+- 可配置的卡片类型
+- 模块化的AI服务
+
+---
+
+## 总结
+
+LinguaFlow采用现代化的技术栈和架构设计，确保：
+
+✅ **高性能**: 虚拟滚动、图片优化、代码分割
+✅ **可扩展**: 模块化设计、插件系统
+✅ **安全性**: RLS、数据验证、XSS防护
+✅ **用户体验**: 流畅动画、实时更新、离线支持
+✅ **开发效率**: TypeScript、组件复用、自动化部署
+
+这套架构能够支撑从MVP到百万用户的成长，同时保持代码的可维护性和扩展性。
+
