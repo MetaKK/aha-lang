@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, useCallback } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
@@ -47,13 +47,70 @@ const FeedList = memo(function FeedList({
   // Flatten all cards from all pages
   const allCards = data?.pages.flatMap((page) => page.cards) ?? [];
 
-  // Virtual scrolling for performance
+  // Virtual scrolling for performance - Optimized
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? allCards.length + 1 : allCards.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 200,
-    overscan: 3,
+    estimateSize: (index) => {
+      // Estimate size based on card type for better accuracy
+      const card = allCards[index];
+      if (!card) return 200; // Default for loader
+      
+      // Different card types have different heights
+      if (card.type === 'novel') return 280;
+      if (card.type === 'media') {
+        const mediaCount = (card as any).media?.length || 0;
+        if (mediaCount > 1) return 350;
+        return 300;
+      }
+      return 180; // Text cards are shorter
+    },
+    overscan: 5, // Increased overscan for smoother scrolling
+    measureElement:
+      typeof window !== 'undefined' &&
+      navigator.userAgent.indexOf('Firefox') === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
   });
+
+  // Memoized render function for better performance
+  const renderVirtualRow = useCallback((virtualRow: any) => {
+    const isLoaderRow = virtualRow.index > allCards.length - 1;
+    const card = allCards[virtualRow.index];
+
+    return (
+      <div
+        key={virtualRow.key}
+        data-index={virtualRow.index}
+        ref={rowVirtualizer.measureElement}
+        className="absolute top-0 left-0 w-full border-b"
+        style={{
+          transform: `translateY(${virtualRow.start}px)`,
+          borderBottomColor: 'rgb(240, 244, 248)',
+          willChange: 'transform', // GPU acceleration hint
+        }}
+      >
+        {isLoaderRow ? (
+          hasNextPage ? (
+            <div className="flex items-center justify-center py-8 bg-white dark:bg-black">
+              <ArrowPathIcon className="w-6 h-6 text-blue-500 animate-spin" />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-8 bg-white dark:bg-black">
+              <span className="text-sm text-gray-500">
+                You've reached the end
+              </span>
+            </div>
+          )
+        ) : (
+          <PostCard
+            card={card}
+            onInteraction={onCardInteraction}
+          />
+        )}
+      </div>
+    );
+  }, [allCards, hasNextPage, onCardInteraction, rowVirtualizer.measureElement]);
 
   // Load more when scrolling near bottom
   useEffect(() => {
@@ -120,50 +177,23 @@ const FeedList = memo(function FeedList({
     <div
       ref={parentRef}
       className="h-full w-full overflow-auto apple-scrollbar"
+      style={{
+        // Improve scroll performance
+        WebkitOverflowScrolling: 'touch',
+        scrollBehavior: 'auto',
+      }}
     >
       <div
         style={{
           height: `${rowVirtualizer.getTotalSize()}px`,
           width: '100%',
           position: 'relative',
+          // Enable hardware acceleration
+          transform: 'translateZ(0)',
+          willChange: 'auto',
         }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-          const isLoaderRow = virtualRow.index > allCards.length - 1;
-          const card = allCards[virtualRow.index];
-
-          return (
-            <div
-              key={virtualRow.key}
-              data-index={virtualRow.index}
-              ref={rowVirtualizer.measureElement}
-               className="absolute top-0 left-0 w-full border-b"
-               style={{
-                 transform: `translateY(${virtualRow.start}px)`,
-                 borderBottomColor: 'rgb(240, 244, 248)',
-               }}
-            >
-              {isLoaderRow ? (
-                hasNextPage ? (
-                  <div className="flex items-center justify-center py-8 bg-white dark:bg-black">
-                    <ArrowPathIcon className="w-6 h-6 text-blue-500 animate-spin" />
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center py-8 bg-white dark:bg-black">
-                    <span className="text-sm text-gray-500">
-                      You've reached the end
-                    </span>
-                  </div>
-                )
-              ) : (
-                <PostCard
-                  card={card}
-                  onInteraction={onCardInteraction}
-                />
-              )}
-            </div>
-          );
-        })}
+        {rowVirtualizer.getVirtualItems().map(renderVirtualRow)}
       </div>
     </div>
   );
