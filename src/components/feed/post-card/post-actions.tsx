@@ -131,9 +131,8 @@ const PostActions = memo(function PostActions({
           e.stopPropagation();
           onReply?.();
         }}
-        className="group flex items-center gap-1.5 text-gray-500 hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10"
+        className="group flex items-center gap-1.5 text-gray-500 hover:text-primary transition-all duration-200 p-2 rounded-full hover:bg-primary/10 active:scale-95"
         aria-label={`Reply (${stats.replies})`}
-        style={{ touchAction: 'manipulation' }}
       >
         <ChatBubbleOvalLeftIcon className="w-[18px] h-[18px]" />
         {stats.replies > 0 && (
@@ -150,13 +149,12 @@ const PostActions = memo(function PostActions({
           handleRepost();
         }}
         className={cn(
-          'group flex items-center gap-1.5 transition-colors p-2 rounded-full',
+          'group flex items-center gap-1.5 transition-all duration-200 p-2 rounded-full active:scale-95',
           isReposted 
             ? 'text-green-600 hover:bg-green-500/10' 
             : 'text-gray-500 hover:text-green-600 hover:bg-green-500/10'
         )}
         aria-label={`Repost (${repostCount})`}
-        style={{ touchAction: 'manipulation' }}
       >
         <ArrowPathRoundedSquareIcon className="w-[18px] h-[18px]" />
         {repostCount > 0 && (
@@ -173,13 +171,12 @@ const PostActions = memo(function PostActions({
           handleLike();
         }}
         className={cn(
-          'group flex items-center gap-1.5 transition-colors p-2 rounded-full',
+          'group flex items-center gap-1.5 transition-all duration-200 p-2 rounded-full active:scale-95',
           isLiked 
             ? 'text-rose-600 hover:bg-rose-500/10' 
             : 'text-gray-500 hover:text-rose-600 hover:bg-rose-500/10'
         )}
         aria-label={`Like (${likeCount})`}
-        style={{ touchAction: 'manipulation' }}
       >
         {isLiked ? (
           <HeartIconSolid className="w-[18px] h-[18px]" />
@@ -218,7 +215,6 @@ const PostActions = memo(function PostActions({
               : 'text-gray-500 hover:text-blue-600 hover:bg-blue-500/10'
           )}
           aria-label="Bookmark"
-          style={{ touchAction: 'manipulation' }}
         >
           {isBookmarked ? (
             <BookmarkIconSolid className="w-[18px] h-[18px]" />
@@ -235,7 +231,6 @@ const PostActions = memo(function PostActions({
           }}
           className="group text-gray-500 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-blue-500/10"
           aria-label="Share"
-          style={{ touchAction: 'manipulation' }}
         >
           <ArrowUpTrayIcon className="w-[18px] h-[18px]" />
         </button>
