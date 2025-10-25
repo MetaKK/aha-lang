@@ -14,7 +14,7 @@ import {
   PlusIcon, 
   XMarkIcon, 
   PencilSquareIcon,
-  AcademicCapIcon
+  FireIcon
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
@@ -30,22 +30,22 @@ export function UnifiedFAB({ onCreatePost, onCreateChallenge }: UnifiedFABProps)
   // 两个核心操作
   const actions = [
     {
-      id: 'post',
-      icon: PencilSquareIcon,
-      label: 'New Post',
-      color: 'bg-blue-500',
+      id: 'challenge',
+      icon: FireIcon,
+      label: 'Quest',
+      color: 'bg-orange-500',
       onClick: () => {
-        onCreatePost();
+        onCreateChallenge();
         setIsExpanded(false);
       }
     },
     {
-      id: 'challenge',
-      icon: AcademicCapIcon,
-      label: 'New Challenge',
-      color: 'bg-purple-500',
+      id: 'post',
+      icon: PencilSquareIcon,
+      label: 'Post',
+      color: 'bg-blue-500',
       onClick: () => {
-        onCreateChallenge();
+        onCreatePost();
         setIsExpanded(false);
       }
     }
