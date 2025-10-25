@@ -70,14 +70,14 @@ export class FeedService extends BaseService {
     
     // 获取总数
     const total = await this.count('feed_cards', filters);
-    
+
     return {
       cards: filteredCards,
       total,
       hasMore: offset + filteredCards.length < total,
     };
   }
-  
+
   /**
    * 获取单个卡片详情
    */
@@ -85,12 +85,12 @@ export class FeedService extends BaseService {
     const card = await this.findOne<FeedCardDTO>('feed_cards', cardId, `
       *,
       author:profiles!author_id(
-        id,
-        username,
-        display_name,
-        avatar_url,
-        level
-      )
+          id,
+          username,
+          display_name,
+          avatar_url,
+          level
+        )
     `);
     
     if (!card) {
@@ -239,7 +239,7 @@ export class FeedService extends BaseService {
       .in('type', ['like', 'bookmark', 'repost']);
     
     const interactions = data || [];
-    
+
     return {
       liked: interactions.some((i: any) => i.type === 'like'),
       bookmarked: interactions.some((i: any) => i.type === 'bookmark'),
