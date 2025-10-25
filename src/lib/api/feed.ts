@@ -264,17 +264,82 @@ export async function fetchFeed(options: {
     };
   }
 
-  // TODO: Implement Supabase integration
+  // Supabase implementation
   try {
-    // const { data, error } = await supabase
-    //   .from('feed_cards')
-    //   .select('*')
-    //   .order('created_at', { ascending: false })
-    //   .range(start, end - 1);
-    
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      console.warn('[fetchFeed] Supabase client not available');
+      return {
+        cards: [],
+        hasMore: false,
+      };
+    }
+
+    const start = cursor ? parseInt(cursor) : 0;
+    const end = start + limit - 1;
+
+    console.log('[fetchFeed] Fetching from Supabase:', { start, end });
+
+    const { data, error } = await (supabase as any)
+      .from('feed_cards')
+      .select(`
+        id,
+        type,
+        content,
+        created_at,
+        likes_count,
+        comments_count,
+        shares_count,
+        views_count,
+        profiles:author_id (
+          id,
+          username,
+          display_name,
+          avatar_url
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .range(start, end);
+
+    if (error) {
+      console.error('[fetchFeed] Supabase error:', error);
+      throw error;
+    }
+
+    console.log('[fetchFeed] Supabase data:', data);
+
+    // Transform database response to FeedCard format
+    const cards: FeedCard[] = (data || []).map((item: any) => ({
+      id: item.id,
+      type: item.type,
+      author: {
+        id: item.profiles?.id || 'unknown',
+        handle: item.profiles?.username || 'user',
+        displayName: item.profiles?.display_name || item.profiles?.username || 'User',
+        avatar: item.profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.profiles?.id}`,
+        verified: false,
+      },
+      content: item.content?.text || '',
+      createdAt: item.created_at,
+      stats: {
+        replies: item.comments_count || 0,
+        reposts: item.shares_count || 0,
+        likes: item.likes_count || 0,
+        bookmarks: 0,
+        views: item.views_count || 0,
+      },
+      viewer: {
+        liked: false,
+        reposted: false,
+        bookmarked: false,
+      },
+      ...(item.content?.media ? { media: item.content.media } : {}),
+    }));
+
     return {
-      cards: [],
-      hasMore: false,
+      cards,
+      cursor: cards.length === limit ? String(end + 1) : undefined,
+      hasMore: cards.length === limit,
     };
   } catch (error) {
     console.error('Failed to fetch feed:', error);

@@ -294,8 +294,7 @@ CREATE TABLE public.interactions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
   -- 防止重复点赞/收藏
-  UNIQUE(user_id, target_id, target_type, type) 
-    WHERE type IN ('like', 'bookmark')
+  UNIQUE(user_id, target_id, target_type, type)
 );
 
 -- 互动索引

@@ -70,7 +70,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
 
       if (error) {
-        console.error('Error getting user:', error);
+        // AuthSessionMissingError 是正常的，表示用户未登录
+        if (error.message !== 'Auth session missing!') {
+          console.error('Error getting user:', error);
+        }
         setUser(null);
         setProfile(null);
         return;
@@ -87,8 +90,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(null);
         setProfile(null);
       }
-    } catch (err) {
-      console.error('Error refreshing user:', err);
+    } catch (err: any) {
+      // AuthSessionMissingError 是正常的，表示用户未登录
+      if (err?.message !== 'Auth session missing!') {
+        console.error('Error refreshing user:', err);
+      }
       setUser(null);
       setProfile(null);
     } finally {
@@ -99,7 +105,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // 初始化认证状态
   useEffect(() => {
     // 检查是否为本地开发且启用了模拟认证
-    if (isLocalDevelopment() && process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true') {
+    if (isLocalDevelopment()) {
       // 使用模拟认证
       const mockSession = getMockSession();
       if (mockSession) {
@@ -191,22 +197,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       if (data.user) {
-        // 创建用户资料
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            username,
-            display_name: username,
-            level: 1,
-            experience: 0,
-            streak_days: 0,
-          } as any);
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-        }
-
+        // Profile 会由数据库触发器自动创建
         toast.success('注册成功！请检查邮箱验证链接');
       }
     } catch (err: any) {
@@ -236,7 +227,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // 用户登录
   const signIn = useCallback(async (email: string, password: string) => {
     // 检查是否为模拟认证模式
-    if (isLocalDevelopment() && process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true') {
+    if (isLocalDevelopment()) {
       try {
         setLoading(true);
         setError(null);
@@ -340,7 +331,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // 用户登出
   const signOut = useCallback(async () => {
     // 检查是否为模拟认证模式
-    if (isLocalDevelopment() && process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true') {
+    if (isLocalDevelopment()) {
       try {
         setLoading(true);
         
