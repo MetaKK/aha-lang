@@ -1,3 +1,19 @@
+/*
+ * @Author: meta-kk 11097094+teacher-kk@user.noreply.gitee.com
+ * @Date: 2025-10-25 10:26:11
+ * @LastEditors: meta-kk 11097094+teacher-kk@user.noreply.gitee.com
+ * @LastEditTime: 2025-10-25 10:58:43
+ * @FilePath: /aha-lang/src/components/feed/unified-create-modal.tsx
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
+/*
+ * @Author: meta-kk 11097094+teacher-kk@user.noreply.gitee.com
+ * @Date: 2025-10-25 10:26:11
+ * @LastEditors: meta-kk 11097094+teacher-kk@user.noreply.gitee.com
+ * @LastEditTime: 2025-10-25 10:54:17
+ * @FilePath: /aha-lang/src/components/feed/unified-create-modal.tsx
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 /**
  * 统一的内容创建模态框
  * 
@@ -184,6 +200,16 @@ export function UnifiedCreateModal({
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                {/* User Avatar - 移到左上角 */}
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-sm font-semibold">U</span>
+                </div>
+                
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {config.title}
+                </h2>
+                
+                {/* Close button - 移到右上角 */}
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -191,44 +217,25 @@ export function UnifiedCreateModal({
                 >
                   <XMarkIcon className="w-5 h-5" />
                 </button>
-                
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {config.title}
-                </h2>
-                
-                {/* Advanced toggle */}
-                <button
-                  onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-                  aria-label="高级选项"
-                >
-                  <SparklesIcon className={`w-5 h-5 ${showAdvanced ? 'text-blue-500' : 'text-gray-400'}`} />
-                </button>
               </div>
 
               {/* Content - Scrollable */}
               <div className="flex-1 overflow-y-auto p-4">
-                {/* User Avatar & Textarea */}
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-semibold">U</span>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <textarea
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder={config.placeholder}
-                      className="w-full min-h-[120px] resize-none text-lg placeholder-gray-500 dark:placeholder-gray-400 bg-transparent text-gray-900 dark:text-white focus:outline-none"
-                      autoFocus
-                    />
-                  </div>
+                {/* 增大的输入区域 */}
+                <div className="w-full">
+                  <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={config.placeholder}
+                    className="w-full min-h-[200px] resize-none text-lg placeholder-gray-500 dark:placeholder-gray-400 bg-transparent text-gray-900 dark:text-white focus:outline-none"
+                    autoFocus
+                  />
                 </div>
 
                 {/* Tags */}
                 {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3 ml-13">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     {tags.map(tag => (
                       <motion.span
                         key={tag}
@@ -366,10 +373,6 @@ export function UnifiedCreateModal({
                   </motion.button>
                 </div>
 
-                {/* Hint */}
-                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
-                  按 <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">Cmd</kbd> + <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">Enter</kbd> 快速发布
-                </div>
               </div>
             </motion.div>
           </motion.div>
