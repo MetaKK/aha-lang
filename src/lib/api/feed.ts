@@ -1,11 +1,13 @@
 // Feed API - Client-side implementation with Supabase integration
 import type { FeedCard, FeedResponse, FeedFilters, PostThread, ThreadPost } from '@/types/feed';
 import { createEnhancedMockData } from './mock-data';
+import { getSupabaseClient, isBackendSyncEnabled } from '@/lib/supabase/client';
 
 // Check if mock data should be enabled
-const MOCK_DATA_ENABLED = process.env.NEXT_PUBLIC_ENABLE_BACKEND_SYNC !== 'true';
+const MOCK_DATA_ENABLED = !isBackendSyncEnabled();
 
 console.log('[Feed API] Mock data enabled:', MOCK_DATA_ENABLED);
+console.log('[Feed API] Backend sync enabled:', isBackendSyncEnabled());
 
 // Generate mock data for testing virtual scrolling
 const generateMockCards = (count: number): FeedCard[] => {
@@ -367,6 +369,143 @@ export async function interactWithPost(
     // });
   } catch (error) {
     console.error(`Failed to ${action} post:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Create a new post
+ */
+export async function createPost(options: {
+  content: string;
+  type?: 'text' | 'novel' | 'media' | 'audio';
+  media?: any[];
+}): Promise<FeedCard> {
+  const { content, type = 'text', media } = options;
+  
+  console.log('[createPost] Creating post:', { content, type, MOCK_DATA_ENABLED });
+
+  if (MOCK_DATA_ENABLED) {
+    // Simulate network delay for mock mode
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    const newPost: FeedCard = {
+      id: `post-${Date.now()}`,
+      type: type,
+      author: {
+        id: 'currentUser',
+        handle: 'you',
+        displayName: 'You',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=you',
+        verified: false,
+      },
+      content: content,
+      createdAt: new Date().toISOString(),
+      stats: {
+        replies: 0,
+        reposts: 0,
+        likes: 0,
+        bookmarks: 0,
+        views: 1,
+      },
+      viewer: {
+        liked: false,
+        reposted: false,
+        bookmarked: false,
+      },
+      ...(media && media.length > 0 ? { media } : {}),
+    };
+
+    // Add to mock cards array for persistence in this session
+    mockCards.unshift(newPost);
+
+    console.log('[createPost] Mock post created:', newPost.id);
+    return newPost;
+  }
+
+  // Supabase implementation
+  try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Prepare content based on type
+    const contentData: any = { text: content };
+    if (media && media.length > 0) {
+      contentData.media = media;
+    }
+
+    // Insert post into database
+    const { data, error } = await supabase
+      .from('feed_cards')
+      .insert({
+        type,
+        content: contentData,
+        author_id: user.id,
+        visibility: 'public',
+      })
+      .select(`
+        id,
+        type,
+        content,
+        created_at,
+        likes_count,
+        comments_count,
+        shares_count,
+        views_count,
+        profiles:author_id (
+          id,
+          username,
+          full_name,
+          avatar_url
+        )
+      `)
+      .single();
+
+    if (error) {
+      console.error('[createPost] Supabase error:', error);
+      throw error;
+    }
+
+    // Transform database response to FeedCard format
+    const newPost: FeedCard = {
+      id: data.id,
+      type: data.type as any,
+      author: {
+        id: (data.profiles as any)?.id || user.id,
+        handle: (data.profiles as any)?.username || 'user',
+        displayName: (data.profiles as any)?.full_name || 'User',
+        avatar: (data.profiles as any)?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`,
+        verified: false,
+      },
+      content: (data.content as any)?.text || content,
+      createdAt: data.created_at,
+      stats: {
+        replies: data.comments_count || 0,
+        reposts: data.shares_count || 0,
+        likes: data.likes_count || 0,
+        bookmarks: 0,
+        views: data.views_count || 1,
+      },
+      viewer: {
+        liked: false,
+        reposted: false,
+        bookmarked: false,
+      },
+      ...(media && media.length > 0 ? { media } : {}),
+    };
+
+    console.log('[createPost] Supabase post created:', newPost.id);
+    return newPost;
+  } catch (error) {
+    console.error('[createPost] Failed to create post:', error);
     throw error;
   }
 }

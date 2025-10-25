@@ -2,7 +2,12 @@
 
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { FeedList } from '@/components/feed/feed-list';
+import { EnhancedFAB } from '@/components/feed/enhanced-fab';
+import { CreatePostModal } from '@/components/feed/create-post-modal';
+import { createPost } from '@/lib/api/feed';
 import { cn } from '@/lib/utils';
 
 type TabType = 'foryou' | 'following' | 'romance' | 'fantasy' | 'mystery' | 'scifi' | 'thriller' | 'historical' | 'contemporary' | 'youngadult';
@@ -22,7 +27,92 @@ const novelCategories = [
 
 export default function HomePage() {
   const [selectedTab, setSelectedTab] = useState<TabType>('foryou');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+
+  // Create post mutation with optimistic update
+  const createPostMutation = useMutation({
+    mutationFn: createPost,
+    onMutate: async (newPost) => {
+      // Show loading toast
+      toast.loading('Creating post...', { id: 'create-post' });
+      
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['feed'] });
+
+      // Snapshot the previous value
+      const previousFeed = queryClient.getQueryData(['feed', undefined]);
+
+      // Optimistically update to the new value (optional)
+      console.log('[Mutation] Optimistically adding new post');
+
+      return { previousFeed };
+    },
+    onSuccess: (data) => {
+      console.log('[Mutation] Post created successfully:', data.id);
+      
+      // Show success toast
+      toast.success('Post created successfully! 🎉', { id: 'create-post' });
+      
+      // Invalidate and refetch feed to show the new post
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+    },
+    onError: (err, newPost, context) => {
+      console.error('[Mutation] Failed to create post:', err);
+      
+      // Show error toast
+      toast.error('Failed to create post. Please try again.', { id: 'create-post' });
+      
+      // Rollback to previous value if error
+      if (context?.previousFeed) {
+        queryClient.setQueryData(['feed', undefined], context.previousFeed);
+      }
+    },
+  });
+
+  const handleCreateText = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateImage = () => {
+    console.log('Create image post');
+    // TODO: 实现图片post创建
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateVideo = () => {
+    console.log('Create video post');
+    // TODO: 实现视频post创建
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateNovel = () => {
+    console.log('Create new novel');
+    // TODO: 实现小说创建
+  };
+
+  const handleCreateChapter = () => {
+    console.log('Create new chapter');
+    // TODO: 实现章节创建
+  };
+
+  const handleSubmitPost = async (content: string) => {
+    console.log('[HomePage] Creating post:', content);
+    
+    try {
+      // Call the mutation
+      await createPostMutation.mutateAsync({
+        content,
+        type: 'text',
+      });
+      
+      console.log('[HomePage] Post created and feed invalidated');
+    } catch (error) {
+      console.error('[HomePage] Failed to create post:', error);
+      throw error;
+    }
+  };
 
   const scrollToTab = (tabId: TabType) => {
     setSelectedTab(tabId);
@@ -194,6 +284,22 @@ export default function HomePage() {
           filters={selectedTab === 'following' ? {} : undefined}
         />
       </main>
+
+      {/* Enhanced Floating Action Button */}
+      <EnhancedFAB
+        onCreateText={handleCreateText}
+        onCreateImage={handleCreateImage}
+        onCreateVideo={handleCreateVideo}
+        onCreateNovel={handleCreateNovel}
+        onCreateChapter={handleCreateChapter}
+      />
+      
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleSubmitPost}
+      />
     </div>
   );
 }

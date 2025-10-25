@@ -7,6 +7,7 @@ import { NovelCard } from './novel-card';
 import { TextCard } from './text-card';
 import { MediaCard } from './media-card';
 import { interactWithPost } from '@/lib/api/feed';
+import { sharePost } from '@/lib/utils/share';
 
 interface PostCardProps {
   card: FeedCard;
@@ -77,24 +78,23 @@ const PostCard = memo(function PostCard({ card, onInteraction }: PostCardProps) 
 
   // Handle share
   const handleShare = useCallback(async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `Post by ${card.author.displayName}`,
-          text: card.content,
-          url: `${window.location.origin}/post/${card.id}`,
-        });
-      } else {
-        // Fallback: copy to clipboard
-        await navigator.clipboard.writeText(
-          `${window.location.origin}/post/${card.id}`
-        );
-        // TODO: Show toast
-        console.log('Link copied to clipboard');
+    const success = await sharePost(
+      card.id,
+      card.content,
+      card.author.displayName,
+      () => {
+        // Only call onInteraction if share was successful
+        onInteraction?.(card.id, 'share');
+      },
+      (error) => {
+        console.error('Failed to share:', error);
+        // Optionally show error toast to user
       }
-      onInteraction?.(card.id, 'share');
-    } catch (error) {
-      console.error('Failed to share:', error);
+    );
+    
+    // success will be false if user cancelled, true if shared successfully
+    if (success) {
+      console.log('Post shared successfully');
     }
   }, [card.id, card.author.displayName, card.content, onInteraction]);
 

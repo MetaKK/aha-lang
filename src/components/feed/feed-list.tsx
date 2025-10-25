@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useRef, useCallback } from 'react';
+import { memo, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
@@ -19,6 +19,8 @@ const FeedList = memo(function FeedList({
   onCardInteraction,
 }: FeedListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const isScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Infinite query for feed data
   const {
@@ -42,16 +44,29 @@ const FeedList = memo(function FeedList({
     },
     getNextPageParam: (lastPage) => lastPage.cursor,
     initialPageParam: undefined as string | undefined,
+    staleTime: 2 * 60 * 1000, // 2分钟
+    gcTime: 5 * 60 * 1000, // 5分钟
   });
 
-  // Flatten all cards from all pages
-  const allCards = data?.pages.flatMap((page) => page.cards) ?? [];
+  // Flatten all cards from all pages - memoized
+  const allCards = useMemo(
+    () => data?.pages.flatMap((page) => page.cards) ?? [],
+    [data?.pages]
+  );
 
-  // Virtual scrolling for performance - Optimized
+  // Detect mobile device
+  const isMobile = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+  }, []);
+
+  // Virtual scrolling for performance - Optimized for mobile
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? allCards.length + 1 : allCards.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: (index) => {
+    estimateSize: useCallback((index: number) => {
       // Estimate size based on card type for better accuracy
       const card = allCards[index];
       if (!card) return 200; // Default for loader
@@ -64,13 +79,20 @@ const FeedList = memo(function FeedList({
         return 300;
       }
       return 180; // Text cards are shorter
-    },
-    overscan: 5, // Increased overscan for smoother scrolling
-    measureElement:
+    }, [allCards]),
+    // 移动端优化：减少overscan，提高性能
+    overscan: isMobile ? 2 : 5,
+    // 移动端禁用动态测量，使用估算高度
+    measureElement: isMobile ? undefined : (
       typeof window !== 'undefined' &&
       navigator.userAgent.indexOf('Firefox') === -1
         ? (element) => element?.getBoundingClientRect().height
-        : undefined,
+        : undefined
+    ),
+    // 启用平滑滚动
+    scrollMargin: 0,
+    // 移动端优化：使用更激进的缓存策略
+    enabled: true,
   });
 
   // Memoized render function for better performance
@@ -82,12 +104,16 @@ const FeedList = memo(function FeedList({
       <div
         key={virtualRow.key}
         data-index={virtualRow.index}
-        ref={rowVirtualizer.measureElement}
+        ref={!isMobile ? rowVirtualizer.measureElement : undefined}
         className="absolute top-0 left-0 w-full border-b"
         style={{
-          transform: `translateY(${virtualRow.start}px)`,
+          transform: `translate3d(0, ${virtualRow.start}px, 0)`,
           borderBottomColor: 'rgb(240, 244, 248)',
-          willChange: 'transform', // GPU acceleration hint
+          // 移动端优化：减少willChange使用
+          ...(isScrollingRef.current ? { willChange: 'transform' } : {}),
+          // 强制GPU加速
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
         }}
       >
         {isLoaderRow ? (
@@ -110,11 +136,39 @@ const FeedList = memo(function FeedList({
         )}
       </div>
     );
-  }, [allCards, hasNextPage, onCardInteraction, rowVirtualizer.measureElement]);
+  }, [allCards, hasNextPage, onCardInteraction, rowVirtualizer.measureElement, isMobile]);
 
-  // Load more when scrolling near bottom
+  // 滚动状态检测 - 优化willChange
   useEffect(() => {
-    const [lastItem] = [...rowVirtualizer.getVirtualItems()].reverse();
+    const element = parentRef.current;
+    if (!element) return;
+
+    const handleScroll = () => {
+      isScrollingRef.current = true;
+      
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      
+      scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 150);
+    };
+
+    element.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      element.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Load more when scrolling near bottom - 优化触发逻辑
+  useEffect(() => {
+    const virtualItems = rowVirtualizer.getVirtualItems();
+    const [lastItem] = [...virtualItems].reverse();
 
     if (!lastItem) return;
 
@@ -130,7 +184,7 @@ const FeedList = memo(function FeedList({
     fetchNextPage,
     allCards.length,
     isFetchingNextPage,
-    rowVirtualizer.getVirtualItems(),
+    rowVirtualizer,
   ]);
 
   // Loading state
@@ -178,9 +232,15 @@ const FeedList = memo(function FeedList({
       ref={parentRef}
       className="h-full w-full overflow-auto apple-scrollbar"
       style={{
-        // Improve scroll performance
+        // 移动端滚动优化
         WebkitOverflowScrolling: 'touch',
         scrollBehavior: 'auto',
+        // 减少重绘
+        contain: 'layout style paint',
+        // 提升为合成层
+        transform: 'translateZ(0)',
+        // 移动端优化：禁用过度滚动效果
+        overscrollBehavior: 'contain',
       }}
     >
       <div
@@ -188,8 +248,9 @@ const FeedList = memo(function FeedList({
           height: `${rowVirtualizer.getTotalSize()}px`,
           width: '100%',
           position: 'relative',
-          // Enable hardware acceleration
-          transform: 'translateZ(0)',
+          // 移动端优化：减少不必要的transform
+          ...(isMobile ? {} : { transform: 'translateZ(0)' }),
+          // 不使用willChange，让浏览器自动优化
           willChange: 'auto',
         }}
       >
