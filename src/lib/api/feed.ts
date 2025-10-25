@@ -2,6 +2,7 @@
 import type { FeedCard, FeedResponse, FeedFilters, PostThread, ThreadPost } from '@/types/feed';
 import { createEnhancedMockData } from './mock-data';
 import { getSupabaseClient, isBackendSyncEnabled } from '@/lib/supabase/client';
+import { getMockPosts } from './content';
 
 // Check if mock data should be enabled
 const MOCK_DATA_ENABLED = !isBackendSyncEnabled();
@@ -234,17 +235,30 @@ export async function fetchFeed(options: {
   await new Promise(resolve => setTimeout(resolve, 800));
 
   if (MOCK_DATA_ENABLED) {
+    // 获取动态创建的内容
+    const dynamicPosts = getMockPosts();
+    
+    // 合并静态mock数据和动态创建的内容
+    const allCards = [...dynamicPosts, ...mockCards];
+    
     // Mock data for development
     const start = cursor ? parseInt(cursor) : 0;
     const end = start + limit;
-    const cards = mockCards.slice(start, end);
+    const cards = allCards.slice(start, end);
 
-    console.log('[fetchFeed] Returning mock data:', { start, end, cardsCount: cards.length, totalMockCards: mockCards.length });
+    console.log('[fetchFeed] Returning mock data:', { 
+      start, 
+      end, 
+      cardsCount: cards.length, 
+      dynamicPosts: dynamicPosts.length,
+      staticMockCards: mockCards.length,
+      totalCards: allCards.length 
+    });
 
     return {
       cards,
-      cursor: end < mockCards.length ? String(end) : undefined,
-      hasMore: end < mockCards.length,
+      cursor: end < allCards.length ? String(end) : undefined,
+      hasMore: end < allCards.length,
     };
   }
 

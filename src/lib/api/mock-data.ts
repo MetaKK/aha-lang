@@ -290,7 +290,7 @@ export const createEnhancedMockData = (): FeedCard[] => {
         {
           id: 'video-1',
           type: 'video',
-          url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+          url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
           thumbnail: 'https://picsum.photos/800/450?random=20',
           alt: 'English idioms lesson video',
           width: 1280,
@@ -357,7 +357,7 @@ export const createEnhancedMockData = (): FeedCard[] => {
         {
           id: 'mixed-1b',
           type: 'video',
-          url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+          url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
           thumbnail: 'https://picsum.photos/800/450?random=26',
           alt: 'Grammar explanation video',
           width: 1280,

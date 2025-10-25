@@ -52,26 +52,50 @@ const MediaCard = memo(function MediaCard({
   };
 
   // Handle video play/pause
-  const handleVideoPlay = (mediaId: string, event: React.MouseEvent) => {
+  const handleVideoPlay = async (mediaId: string, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent card click
     if (playingVideo === mediaId) {
       videoRef.current?.pause();
       setPlayingVideo(null);
     } else {
-      videoRef.current?.play();
-      setPlayingVideo(mediaId);
+      try {
+        if (videoRef.current) {
+          await videoRef.current.play();
+          setPlayingVideo(mediaId);
+        }
+      } catch (error) {
+        // Handle play() interruption gracefully
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.log('Video play was interrupted');
+        } else {
+          console.error('Video play error:', error);
+        }
+        setPlayingVideo(null);
+      }
     }
   };
 
   // Handle audio play/pause
-  const handleAudioPlay = (mediaId: string, event: React.MouseEvent) => {
+  const handleAudioPlay = async (mediaId: string, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent card click
     if (playingAudio === mediaId) {
       audioRef.current?.pause();
       setPlayingAudio(null);
     } else {
-      audioRef.current?.play();
-      setPlayingAudio(mediaId);
+      try {
+        if (audioRef.current) {
+          await audioRef.current.play();
+          setPlayingAudio(mediaId);
+        }
+      } catch (error) {
+        // Handle play() interruption gracefully
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.log('Audio play was interrupted');
+        } else {
+          console.error('Audio play error:', error);
+        }
+        setPlayingAudio(null);
+      }
     }
   };
 
