@@ -11,14 +11,33 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'commondatastorage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.soundjay.com',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [375, 414, 768, 1024],
     imageSizes: [16, 32, 48, 64, 96],
+    // 开发环境允许未优化的图片（避免跨域问题）
+    unoptimized: process.env.NODE_ENV === 'development',
   },
 
-  // PWA配置
+  // 实验性功能配置
   experimental: {
+    // 包导入优化
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
 
