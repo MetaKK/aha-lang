@@ -280,6 +280,9 @@ export async function fetchFeed(options: {
 
     console.log('[fetchFeed] Fetching from Supabase:', { start, end });
 
+    // Get current user for viewer state
+    const { data: { user } } = await supabase.auth.getUser();
+
     const { data, error } = await (supabase as any)
       .from('feed_cards')
       .select(`
@@ -308,33 +311,52 @@ export async function fetchFeed(options: {
 
     console.log('[fetchFeed] Supabase data:', data);
 
+    // Get user interactions if logged in
+    let userInteractions: any[] = [];
+    if (user) {
+      const { data: interactions } = await (supabase as any)
+        .from('interactions')
+        .select('target_id, type')
+        .eq('user_id', user.id)
+        .eq('target_type', 'card')
+        .in('target_id', (data || []).map((item: any) => item.id));
+      
+      userInteractions = interactions || [];
+    }
+
     // Transform database response to FeedCard format
-    const cards: FeedCard[] = (data || []).map((item: any) => ({
-      id: item.id,
-      type: item.type,
-      author: {
-        id: item.profiles?.id || 'unknown',
-        handle: item.profiles?.username || 'user',
-        displayName: item.profiles?.display_name || item.profiles?.username || 'User',
-        avatar: item.profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.profiles?.id}`,
-        verified: false,
-      },
-      content: item.content?.text || '',
-      createdAt: item.created_at,
-      stats: {
-        replies: item.comments_count || 0,
-        reposts: item.shares_count || 0,
-        likes: item.likes_count || 0,
-        bookmarks: 0,
-        views: item.views_count || 0,
-      },
-      viewer: {
-        liked: false,
-        reposted: false,
-        bookmarked: false,
-      },
-      ...(item.content?.media ? { media: item.content.media } : {}),
-    }));
+    const cards: FeedCard[] = (data || []).map((item: any) => {
+      const liked = userInteractions.some(i => i.target_id === item.id && i.type === 'like');
+      const bookmarked = userInteractions.some(i => i.target_id === item.id && i.type === 'bookmark');
+      const reposted = userInteractions.some(i => i.target_id === item.id && i.type === 'repost');
+
+      return {
+        id: item.id,
+        type: item.type,
+        author: {
+          id: item.profiles?.id || 'unknown',
+          handle: item.profiles?.username || 'user',
+          displayName: item.profiles?.display_name || item.profiles?.username || 'User',
+          avatar: item.profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.profiles?.id}`,
+          verified: false,
+        },
+        content: item.content?.text || '',
+        createdAt: item.created_at,
+        stats: {
+          replies: item.comments_count || 0,
+          reposts: item.shares_count || 0,
+          likes: item.likes_count || 0,
+          bookmarks: 0,
+          views: item.views_count || 0,
+        },
+        viewer: {
+          liked,
+          reposted,
+          bookmarked,
+        },
+        ...(item.content?.media ? { media: item.content.media } : {}),
+      };
+    });
 
     return {
       cards,
@@ -441,13 +463,112 @@ export async function interactWithPost(
     return;
   }
 
-  // TODO: Implement Supabase integration
+  // Supabase implementation
   try {
-    // await supabase.from('interactions').insert({
-    //   card_id: postId,
-    //   type: action,
-    //   timestamp: new Date().toISOString(),
-    // });
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    console.log(`[interactWithPost] ${action} post:`, postId);
+
+    // Handle different actions
+    if (action === 'like') {
+      // Insert like interaction
+      const { error } = await (supabase as any)
+        .from('interactions')
+        .insert({
+          user_id: user.id,
+          target_id: postId,
+          target_type: 'card',
+          type: 'like',
+        });
+
+      if (error) {
+        console.error('[interactWithPost] Like error:', error);
+        throw error;
+      }
+    } else if (action === 'unlike') {
+      // Delete like interaction
+      const { error } = await (supabase as any)
+        .from('interactions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('target_id', postId)
+        .eq('target_type', 'card')
+        .eq('type', 'like');
+
+      if (error) {
+        console.error('[interactWithPost] Unlike error:', error);
+        throw error;
+      }
+    } else if (action === 'bookmark') {
+      // Insert bookmark interaction
+      const { error } = await (supabase as any)
+        .from('interactions')
+        .insert({
+          user_id: user.id,
+          target_id: postId,
+          target_type: 'card',
+          type: 'bookmark',
+        });
+
+      if (error) {
+        console.error('[interactWithPost] Bookmark error:', error);
+        throw error;
+      }
+    } else if (action === 'unbookmark') {
+      // Delete bookmark interaction
+      const { error } = await (supabase as any)
+        .from('interactions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('target_id', postId)
+        .eq('target_type', 'card')
+        .eq('type', 'bookmark');
+
+      if (error) {
+        console.error('[interactWithPost] Unbookmark error:', error);
+        throw error;
+      }
+    } else if (action === 'repost') {
+      // Insert repost interaction
+      const { error } = await (supabase as any)
+        .from('interactions')
+        .insert({
+          user_id: user.id,
+          target_id: postId,
+          target_type: 'card',
+          type: 'repost',
+        });
+
+      if (error) {
+        console.error('[interactWithPost] Repost error:', error);
+        throw error;
+      }
+    } else if (action === 'unrepost') {
+      // Delete repost interaction
+      const { error } = await (supabase as any)
+        .from('interactions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('target_id', postId)
+        .eq('target_type', 'card')
+        .eq('type', 'repost');
+
+      if (error) {
+        console.error('[interactWithPost] Unrepost error:', error);
+        throw error;
+      }
+    }
+
+    console.log(`[interactWithPost] ${action} completed successfully`);
   } catch (error) {
     console.error(`Failed to ${action} post:`, error);
     throw error;
