@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { QueryProvider } from '@/components/providers/query-provider'
+import { AuthProvider } from '@/contexts/auth-context'
 import { Toaster } from 'sonner'
 import './globals.css'
 
@@ -50,14 +51,16 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            {children}
-            <Toaster 
-              position="top-center"
-              toastOptions={{
-                className: 'glass-effect',
-                duration: 2000,
-              }}
-            />
+            <AuthProvider>
+              {children}
+              <Toaster 
+                position="top-center"
+                toastOptions={{
+                  className: 'glass-effect',
+                  duration: 2000,
+                }}
+              />
+            </AuthProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>

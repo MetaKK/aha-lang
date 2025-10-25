@@ -105,7 +105,7 @@ async function createContentMock(
 
   // 添加媒体
   if (data.media && data.media.length > 0) {
-    baseCard.media = data.media.map(m => ({
+    (baseCard as any).media = data.media.map(m => ({
       id: m.id,
       type: m.type,
       url: m.url,
@@ -122,7 +122,7 @@ async function createContentMock(
     
     // 如果是小说类型，添加小说字段
     if (analysis.suggestedType === 'novel') {
-      baseCard.novel = {
+      (baseCard as any).novel = {
         id: challengeData.novelId || `novel-${Date.now()}`,
         title: extractTitle(data.text) || '未命名小说',
         excerpt: data.text.substring(0, 100),
@@ -157,7 +157,12 @@ async function createContentMock(
       media: data.media,
       metadata: data.metadata,
     },
-    author: feedCard.author,
+    author: {
+      id: feedCard.author.id,
+      handle: feedCard.author.handle,
+      displayName: feedCard.author.displayName,
+      avatar: feedCard.author.avatar || 'https://picsum.photos/40/40?random=1',
+    },
     createdAt: feedCard.createdAt,
     analysis,
   };
@@ -196,7 +201,7 @@ async function createContentSupabase(
   }
 
   // 插入数据库
-  const { data: insertedData, error } = await supabase
+  const { data: insertedData, error } = await (supabase as any)
     .from('feed_cards')
     .insert({
       type: analysis.suggestedType,

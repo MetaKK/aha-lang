@@ -17,6 +17,8 @@ import {
   FireIcon
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+import { useAuthState } from '@/hooks/use-auth';
+import { useAuthPrompt } from '@/components/auth/auth-prompt';
 
 interface UnifiedFABProps {
   onCreatePost: () => void;
@@ -26,6 +28,8 @@ interface UnifiedFABProps {
 export function UnifiedFAB({ onCreatePost, onCreateChallenge }: UnifiedFABProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const { isAuthenticated } = useAuthState();
+  const { showPrompt, AuthPrompt } = useAuthPrompt();
 
   // 两个核心操作
   const actions = [
@@ -35,6 +39,11 @@ export function UnifiedFAB({ onCreatePost, onCreateChallenge }: UnifiedFABProps)
       label: 'Quest',
       color: 'bg-orange-500',
       onClick: () => {
+        if (!isAuthenticated) {
+          showPrompt();
+          setIsExpanded(false);
+          return;
+        }
         onCreateChallenge();
         setIsExpanded(false);
       }
@@ -45,6 +54,11 @@ export function UnifiedFAB({ onCreatePost, onCreateChallenge }: UnifiedFABProps)
       label: 'Post',
       color: 'bg-blue-500',
       onClick: () => {
+        if (!isAuthenticated) {
+          showPrompt();
+          setIsExpanded(false);
+          return;
+        }
         onCreatePost();
         setIsExpanded(false);
       }
@@ -217,6 +231,13 @@ export function UnifiedFAB({ onCreatePost, onCreateChallenge }: UnifiedFABProps)
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* 登录提示 */}
+      <AuthPrompt
+        title="需要登录"
+        message="请先登录以使用发帖功能"
+        actionText="立即登录"
+      />
     </motion.div>
   );
 }

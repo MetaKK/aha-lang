@@ -18,6 +18,11 @@ export interface Database {
           username: string
           display_name: string | null
           avatar_url: string | null
+          bio: string | null
+          level: number
+          experience: number
+          streak_days: number
+          last_active_at: string
           created_at: string
           updated_at: string
         }
@@ -26,6 +31,11 @@ export interface Database {
           username: string
           display_name?: string | null
           avatar_url?: string | null
+          bio?: string | null
+          level?: number
+          experience?: number
+          streak_days?: number
+          last_active_at?: string
           created_at?: string
           updated_at?: string
         }
@@ -34,6 +44,11 @@ export interface Database {
           username?: string
           display_name?: string | null
           avatar_url?: string | null
+          bio?: string | null
+          level?: number
+          experience?: number
+          streak_days?: number
+          last_active_at?: string
           created_at?: string
           updated_at?: string
         }

@@ -176,7 +176,7 @@ const generateMockCards = (count: number): FeedCard[] => {
           reposted: false,
           bookmarked: i % 9 === 0,
         },
-        media: mediaItems,
+        media: mediaItems as any,
       });
     } else {
       cards.push({
@@ -403,7 +403,7 @@ export async function createPost(options: {
     // Simulate network delay for mock mode
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    const newPost: FeedCard = {
+    const newPost: any = {
       id: `post-${Date.now()}`,
       type: type,
       author: {
@@ -457,7 +457,7 @@ export async function createPost(options: {
     }
 
     // Insert post into database
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('feed_cards')
       .insert({
         type,
@@ -489,7 +489,7 @@ export async function createPost(options: {
     }
 
     // Transform database response to FeedCard format
-    const newPost: FeedCard = {
+    const newPost: any = {
       id: data.id,
       type: data.type as any,
       author: {

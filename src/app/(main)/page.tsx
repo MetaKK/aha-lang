@@ -7,6 +7,10 @@ import { toast } from 'sonner';
 import { FeedList } from '@/components/feed/feed-list';
 import { UnifiedFAB } from '@/components/feed/unified-fab';
 import { UnifiedCreateModal } from '@/components/feed/unified-create-modal';
+import { useAuthGuard } from '@/components/auth/auth-guard';
+import { UserAvatar } from '@/components/auth/user-avatar';
+import { useAuthPrompt } from '@/components/auth/auth-prompt';
+import { useAuthState, usePermission } from '@/hooks/use-auth';
 import { createPost, createChallenge } from '@/lib/api/content';
 import type { ContentCategory } from '@/types/content';
 import { cn } from '@/lib/utils';
@@ -32,6 +36,12 @@ export default function HomePage() {
   const [createCategory, setCreateCategory] = useState<ContentCategory>('post');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  
+  // 认证状态
+  const { user, profile, isAuthenticated } = useAuthState();
+  const { canCreatePost, canCreateChallenge } = usePermission();
+  const { redirectToAuth } = useAuthGuard();
+  const { AuthPrompt } = useAuthPrompt();
 
   const scrollToTab = (tabId: TabType) => {
     setSelectedTab(tabId);
@@ -116,12 +126,20 @@ export default function HomePage() {
 
   // 打开创建帖子模态框
   const handleCreatePost = () => {
+    if (!isAuthenticated) {
+      // 使用优雅的登录提示而不是直接跳转
+      return;
+    }
     setCreateCategory('post');
     setIsCreateModalOpen(true);
   };
 
   // 打开创建挑战模态框
   const handleCreateChallenge = () => {
+    if (!isAuthenticated) {
+      // 使用优雅的登录提示而不是直接跳转
+      return;
+    }
     setCreateCategory('challenge');
     setIsCreateModalOpen(true);
   };
@@ -224,21 +242,12 @@ export default function HomePage() {
             
             {/* Content with backdrop blur */}
             <div className="relative z-20 flex items-center justify-between w-full">
-            {/* Profile Button - X Style */}
-            <button 
-              aria-expanded="false" 
-              aria-haspopup="menu" 
-              aria-label="Profile menu" 
-              role="button" 
-              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              type="button"
-            >
-              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                  <span className="text-white text-xs font-semibold">U</span>
-                </div>
-              </div>
-            </button>
+            {/* User Avatar with Dropdown */}
+            <UserAvatar 
+              size="sm" 
+              showDropdown={true}
+              className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-1 transition-colors"
+            />
             
             {/* AI Tech Logo - Simplified & Elegant */}
             <div className="flex items-center">
@@ -321,6 +330,13 @@ export default function HomePage() {
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleSubmitContent}
       />
-    </div>
+      
+      {/* 登录提示 */}
+      <AuthPrompt
+        title="需要登录"
+        message="请先登录以使用发帖功能"
+        actionText="立即登录"
+      />
+      </div>
   );
 }
