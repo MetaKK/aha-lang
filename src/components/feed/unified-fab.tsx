@@ -22,10 +22,10 @@ import { useAuthPrompt } from '@/components/auth/auth-prompt';
 
 interface UnifiedFABProps {
   onCreatePost: () => void;
-  onCreateChallenge: () => void;
+  onCreateQuest: () => void;
 }
 
-export function UnifiedFAB({ onCreatePost, onCreateChallenge }: UnifiedFABProps) {
+export function UnifiedFAB({ onCreatePost, onCreateQuest }: UnifiedFABProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const { isAuthenticated } = useAuthState();
@@ -34,7 +34,7 @@ export function UnifiedFAB({ onCreatePost, onCreateChallenge }: UnifiedFABProps)
   // 两个核心操作
   const actions = [
     {
-      id: 'challenge',
+      id: 'quest',
       icon: FireIcon,
       label: 'Quest',
       color: 'bg-orange-500',
@@ -44,7 +44,7 @@ export function UnifiedFAB({ onCreatePost, onCreateChallenge }: UnifiedFABProps)
           setIsExpanded(false);
           return;
         }
-        onCreateChallenge();
+        onCreateQuest();
         setIsExpanded(false);
       }
     },

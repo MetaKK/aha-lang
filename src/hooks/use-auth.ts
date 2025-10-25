@@ -32,7 +32,7 @@ export function usePermission(): UsePermissionReturn {
     // 基础权限：所有登录用户都可以创建内容
     const basicPermissions: Permission[] = [
       'create_post',
-      'create_challenge',
+      'create_quest',
       'edit_profile',
     ];
 
@@ -68,7 +68,7 @@ export function usePermission(): UsePermissionReturn {
     hasAllPermissions,
     hasAnyPermission,
     canCreatePost: hasPermission('create_post'),
-    canCreateChallenge: hasPermission('create_challenge'),
+    canCreateQuest: hasPermission('create_quest'),
     canEditProfile: hasPermission('edit_profile'),
     isAdmin: hasPermission('admin'),
   };

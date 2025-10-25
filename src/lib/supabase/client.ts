@@ -75,3 +75,6 @@ export function getSupabaseClient() {
 // 导出单例
 export const supabase = getSupabaseClient();
 
+// 为了兼容性，导出 createClient 别名
+export const createClient = getSupabaseClient;
+

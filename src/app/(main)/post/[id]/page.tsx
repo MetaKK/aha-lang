@@ -375,7 +375,7 @@ function ContentRenderer({ post }: { post: any }) {
       {post.type === 'audio' && post.audio && <AudioCard audio={post.audio} />}
       
       {/* Novel Card */}
-      {post.type === 'novel' && post.novel && <NovelCard content={post.novel} />}
+      {post.type === 'novel' && post.novel && <QuestCard content={post.novel} />}
       
       {/* Quote Card */}
       {post.type === 'quote' && post.quotedCard && <QuoteCard quotedCard={post.quotedCard} />}
@@ -514,7 +514,7 @@ function AudioCard({ audio }: { audio: any }) {
 }
 
 // Novel Card Component
-function NovelCard({ content }: { content: any }) {
+function QuestCard({ content }: { content: any }) {
   return (
     <div className="rounded-2xl p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border" style={{borderColor: 'rgb(240, 244, 248)'}}>
       <div className="flex items-center gap-3 mb-4">

@@ -16,12 +16,12 @@ import type {
   BaseContentData,
   ContentAnalysis,
   PostSubType,
-  ChallengeSubType,
+  QuestSubType,
   DispatchRule,
   DispatcherConfig,
   ContentCreationData,
   PostCreationData,
-  ChallengeCreationData
+  QuestCreationData
 } from '@/types/content';
 
 // ============================================================================
@@ -104,11 +104,11 @@ const POST_DISPATCH_RULES: DispatchRule[] = [
 /**
  * 挑战分发规则
  */
-const CHALLENGE_DISPATCH_RULES: DispatchRule[] = [
+const QUEST_DISPATCH_RULES: DispatchRule[] = [
   // 规则1: 包含小说ID → novel类型
   {
-    id: 'challenge-novel-detection',
-    name: '小说挑战检测',
+    id: 'quest-novel-detection',
+    name: '小说Quest检测',
     priority: 100,
     condition: (data) => {
       return !!(data.metadata?.novelId || data.metadata?.isNovel);
@@ -126,8 +126,8 @@ const CHALLENGE_DISPATCH_RULES: DispatchRule[] = [
   
   // 规则2: 包含章节号 → chapter类型
   {
-    id: 'challenge-chapter-detection',
-    name: '章节挑战检测',
+    id: 'quest-chapter-detection',
+    name: '章节Quest检测',
     priority: 95,
     condition: (data) => {
       return !!(data.metadata?.chapterNumber || data.metadata?.isChapter);
@@ -145,8 +145,8 @@ const CHALLENGE_DISPATCH_RULES: DispatchRule[] = [
   
   // 规则3: 包含词汇列表 → vocabulary类型
   {
-    id: 'challenge-vocabulary-detection',
-    name: '词汇挑战检测',
+    id: 'quest-vocabulary-detection',
+    name: '词汇Quest检测',
     priority: 90,
     condition: (data) => {
       return !!(data.metadata?.vocabulary || data.metadata?.words);
@@ -163,8 +163,8 @@ const CHALLENGE_DISPATCH_RULES: DispatchRule[] = [
   
   // 规则4: 包含语法点 → grammar类型
   {
-    id: 'challenge-grammar-detection',
-    name: '语法挑战检测',
+    id: 'quest-grammar-detection',
+    name: '语法Quest检测',
     priority: 90,
     condition: (data) => {
       return !!(data.metadata?.grammarPoints || data.metadata?.grammar);
@@ -181,8 +181,8 @@ const CHALLENGE_DISPATCH_RULES: DispatchRule[] = [
   
   // 规则5: 包含音频 → listening类型
   {
-    id: 'challenge-listening-detection',
-    name: '听力挑战检测',
+    id: 'quest-listening-detection',
+    name: '听力Quest检测',
     priority: 85,
     condition: (data) => {
       return !!(data.media?.some(m => m.type === 'audio') || data.metadata?.isListening);
@@ -209,7 +209,7 @@ export class ContentDispatcher {
     this.config = {
       rules: [],
       defaultPostType: 'text',
-      defaultChallengeType: 'novel',
+      defaultQuestType: 'novel',
       enableAIAnalysis: false,
       ...config,
     };
@@ -228,7 +228,7 @@ export class ContentDispatcher {
     // 根据类别选择规则集
     const rules = data.category === 'post' 
       ? POST_DISPATCH_RULES 
-      : CHALLENGE_DISPATCH_RULES;
+      : QUEST_DISPATCH_RULES;
     
     // 按优先级排序
     const sortedRules = [...rules].sort((a, b) => b.priority - a.priority);
@@ -258,7 +258,7 @@ export class ContentDispatcher {
     // 如果没有规则匹配，使用默认类型
     const defaultType = data.category === 'post' 
       ? this.config.defaultPostType 
-      : this.config.defaultChallengeType;
+      : this.config.defaultQuestType;
     
     console.log('[ContentDispatcher] No rule matched, using default:', defaultType);
     
@@ -290,15 +290,15 @@ export class ContentDispatcher {
   }
   
   /**
-   * 分析挑战内容
+   * 分析Quest内容
    */
-  analyzeChallenge(data: ChallengeCreationData): ContentAnalysis {
-    // 挑战类型由用户明确指定
+  analyzeQuest(data: QuestCreationData): ContentAnalysis {
+    // Quest类型由用户明确指定
     return {
-      category: 'challenge',
-      suggestedType: data.challengeType,
+      category: 'quest',
+      suggestedType: data.questType,
       confidence: 1.0,
-      reasons: ['挑战类型由用户指定'],
+      reasons: ['Quest类型由用户指定'],
       metadata: {
         difficulty: data.difficulty,
         estimatedTime: data.estimatedTime,
@@ -356,7 +356,7 @@ export function analyzePost(data: PostCreationData): ContentAnalysis {
 /**
  * 快速分析挑战
  */
-export function analyzeChallenge(data: ChallengeCreationData): ContentAnalysis {
-  return contentDispatcher.analyzeChallenge(data);
+export function analyzeQuest(data: QuestCreationData): ContentAnalysis {
+  return contentDispatcher.analyzeQuest(data);
 }
 

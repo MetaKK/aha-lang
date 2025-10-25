@@ -58,7 +58,7 @@ const FeedList = memo(function FeedList({
       
       // Different card types have different heights
       if (card.type === 'novel') return 280;
-      if (card.type === 'media') {
+      if (card.type === 'image' || card.type === 'video') {
         const mediaCount = (card as any).media?.length || 0;
         if (mediaCount > 1) return 350;
         return 300;

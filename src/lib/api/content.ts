@@ -12,7 +12,7 @@ import type {
   ContentCreationData,
   ContentCreationResponse,
   PostCreationData,
-  ChallengeCreationData,
+  QuestCreationData,
   BaseContentData,
 } from '@/types/content';
 import { contentDispatcher } from '@/lib/content/dispatcher';
@@ -117,22 +117,22 @@ async function createContentMock(
   }
 
   // 根据类型添加特定字段
-  if (data.category === 'challenge') {
-    const challengeData = data as ChallengeCreationData;
+  if (data.category === 'quest') {
+    const questData = data as QuestCreationData;
     
     // 如果是小说类型，添加小说字段
     if (analysis.suggestedType === 'novel') {
       (baseCard as any).novel = {
-        id: challengeData.novelId || `novel-${Date.now()}`,
+        id: questData.novelId || `novel-${Date.now()}`,
         title: extractTitle(data.text) || '未命名小说',
         excerpt: data.text.substring(0, 100),
         coverImage: data.media?.[0]?.url || `https://picsum.photos/400/600?random=${Date.now()}`,
-        difficulty: challengeData.difficulty || 3,
+        difficulty: questData.difficulty || 3,
         totalChapters: 1,
         currentChapter: 1,
-        tags: challengeData.tags || [],
+        tags: questData.tags || [],
         language: 'en-GB',
-        estimatedTime: challengeData.estimatedTime || '30 min',
+        estimatedTime: questData.estimatedTime || '30 min',
       };
     }
   }
@@ -281,10 +281,10 @@ export async function createPost(data: Omit<PostCreationData, 'category'>): Prom
 /**
  * 创建挑战
  */
-export async function createChallenge(data: Omit<ChallengeCreationData, 'category'>): Promise<ContentCreationResponse> {
+export async function createQuest(data: Omit<QuestCreationData, 'category'>): Promise<ContentCreationResponse> {
   return createContent({
     ...data,
-    category: 'challenge',
+    category: 'quest',
   });
 }
 

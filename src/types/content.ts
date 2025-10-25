@@ -14,7 +14,7 @@
 /**
  * 内容类别 - 两个核心入口
  */
-export type ContentCategory = 'post' | 'challenge';
+export type ContentCategory = 'post' | 'quest';
 
 /**
  * 帖子子类型 - 由智能分发器自动识别
@@ -27,15 +27,15 @@ export type PostSubType =
   | 'repost';   // 转发帖子
 
 /**
- * 挑战子类型 - 学习相关的挑战内容
+ * Quest子类型 - 学习相关的quest内容
  */
-export type ChallengeSubType = 
-  | 'novel'     // 小说阅读挑战
-  | 'chapter'   // 章节学习挑战
-  | 'vocabulary'// 词汇挑战
-  | 'grammar'   // 语法挑战
-  | 'listening' // 听力挑战
-  | 'speaking'; // 口语挑战
+export type QuestSubType = 
+  | 'novel'     // 小说阅读quest
+  | 'chapter'   // 章节学习quest
+  | 'vocabulary'// 词汇quest
+  | 'grammar'   // 语法quest
+  | 'listening' // 听力quest
+  | 'speaking'; // 口语quest
 
 // ============================================================================
 // 内容创建接口
@@ -77,20 +77,20 @@ export interface PostCreationData extends BaseContentData {
 }
 
 /**
- * 挑战创建数据
+ * Quest创建数据
  */
-export interface ChallengeCreationData extends BaseContentData {
-  category: 'challenge';
-  // 挑战特有字段
-  challengeType: ChallengeSubType;
+export interface QuestCreationData extends BaseContentData {
+  category: 'quest';
+  // Quest特有字段
+  questType: QuestSubType;
   difficulty?: 1 | 2 | 3 | 4 | 5;
   estimatedTime?: string;
   tags?: string[];
   // 小说/章节特有
   novelId?: string;
   chapterNumber?: number;
-  // 挑战配置
-  challengeConfig?: {
+  // Quest配置
+  questConfig?: {
     vocabulary?: string[];
     grammarPoints?: string[];
     questions?: any[];
@@ -100,7 +100,7 @@ export interface ChallengeCreationData extends BaseContentData {
 /**
  * 统一的内容创建数据
  */
-export type ContentCreationData = PostCreationData | ChallengeCreationData;
+export type ContentCreationData = PostCreationData | QuestCreationData;
 
 // ============================================================================
 // 智能分发器
@@ -111,7 +111,7 @@ export type ContentCreationData = PostCreationData | ChallengeCreationData;
  */
 export interface ContentAnalysis {
   category: ContentCategory;
-  suggestedType: PostSubType | ChallengeSubType;
+  suggestedType: PostSubType | QuestSubType;
   confidence: number;           // 0-1 置信度
   reasons: string[];            // 判断依据
   metadata: Record<string, any>;// 提取的元数据
@@ -134,7 +134,7 @@ export interface DispatchRule {
 export interface DispatcherConfig {
   rules: DispatchRule[];
   defaultPostType: PostSubType;
-  defaultChallengeType: ChallengeSubType;
+  defaultQuestType: QuestSubType;
   enableAIAnalysis?: boolean;   // 是否启用AI分析（未来扩展）
 }
 
@@ -146,7 +146,7 @@ export interface DispatcherConfig {
  * 卡片渲染配置
  */
 export interface CardRenderConfig {
-  type: PostSubType | ChallengeSubType;
+  type: PostSubType | QuestSubType;
   component: string;            // 组件名称
   props: Record<string, any>;   // 组件属性
   layout: 'compact' | 'standard' | 'expanded';
@@ -171,7 +171,7 @@ export interface CardRenderStrategy {
 export interface ContentCreationResponse {
   id: string;
   category: ContentCategory;
-  type: PostSubType | ChallengeSubType;
+  type: PostSubType | QuestSubType;
   content: BaseContentData;
   author: {
     id: string;
@@ -195,9 +195,9 @@ export function isPostCreation(data: ContentCreationData): data is PostCreationD
 }
 
 /**
- * 类型守卫：判断是否为挑战创建数据
+ * 类型守卫：判断是否为Quest创建数据
  */
-export function isChallengeCreation(data: ContentCreationData): data is ChallengeCreationData {
-  return data.category === 'challenge';
+export function isQuestCreation(data: ContentCreationData): data is QuestCreationData {
+  return data.category === 'quest';
 }
 

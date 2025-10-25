@@ -96,7 +96,7 @@ export function UnifiedCreateModal({
       }
       
       // 挑战特有元数据
-      if (category === 'challenge') {
+      if (category === 'quest') {
         metadata.difficulty = difficulty;
         if (estimatedTime) {
           metadata.estimatedTime = estimatedTime;
@@ -152,10 +152,10 @@ export function UnifiedCreateModal({
       showDifficulty: false,
       showEstimatedTime: false,
     },
-    challenge: {
-      title: '新增挑战',
-      placeholder: '描述这个学习挑战...',
-      submitText: '创建挑战',
+    quest: {
+      title: '新增Quest',
+      placeholder: '描述这个学习Quest...',
+      submitText: '创建Quest',
       maxLength: 500,
       showDifficulty: true,
       showEstimatedTime: true,
@@ -265,7 +265,7 @@ export function UnifiedCreateModal({
                       exit={{ height: 0, opacity: 0 }}
                       className="mt-4 ml-13 space-y-4 overflow-hidden"
                     >
-                      {/* Difficulty (Challenge only) */}
+                      {/* Difficulty (Quest only) */}
                       {config.showDifficulty && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -289,7 +289,7 @@ export function UnifiedCreateModal({
                         </div>
                       )}
 
-                      {/* Estimated Time (Challenge only) */}
+                      {/* Estimated Time (Quest only) */}
                       {config.showEstimatedTime && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

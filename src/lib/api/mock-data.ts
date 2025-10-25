@@ -16,7 +16,7 @@ export const createEnhancedMockData = (): FeedCard[] => {
     // Single Image Card
     {
       id: 'single-image-1',
-      type: 'media',
+      type: 'image',
       author: {
         id: 'author-1',
         handle: authors[0].handle,
@@ -46,7 +46,7 @@ export const createEnhancedMockData = (): FeedCard[] => {
     // Two Images Card
     {
       id: 'two-images-1',
-      type: 'media',
+      type: 'image',
       author: {
         id: 'author-2',
         handle: authors[1].handle,
@@ -85,7 +85,7 @@ export const createEnhancedMockData = (): FeedCard[] => {
     // Three Images Card
     {
       id: 'three-images-1',
-      type: 'media',
+      type: 'image',
       author: {
         id: 'author-3',
         handle: authors[2].handle,
@@ -135,7 +135,7 @@ export const createEnhancedMockData = (): FeedCard[] => {
     // Four Images Card
     {
       id: 'four-images-1',
-      type: 'media',
+      type: 'image',
       author: {
         id: 'author-4',
         handle: authors[3].handle,
@@ -194,7 +194,7 @@ export const createEnhancedMockData = (): FeedCard[] => {
     // Five+ Images Card (with +N indicator)
     {
       id: 'five-images-1',
-      type: 'media',
+      type: 'image',
       author: {
         id: 'author-5',
         handle: authors[4].handle,
@@ -273,7 +273,7 @@ export const createEnhancedMockData = (): FeedCard[] => {
     // Video Card
     {
       id: 'video-1',
-      type: 'media',
+      type: 'image',
       author: {
         id: 'author-6',
         handle: 'videographer',
@@ -330,7 +330,7 @@ export const createEnhancedMockData = (): FeedCard[] => {
     // Mixed Media Card (Image + Video)
     {
       id: 'mixed-media-1',
-      type: 'media',
+      type: 'image',
       author: {
         id: 'author-8',
         handle: 'contentcreator',

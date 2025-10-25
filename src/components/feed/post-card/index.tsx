@@ -3,7 +3,7 @@
 import { memo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { FeedCard } from '@/types/feed';
-import { NovelCard } from './novel-card';
+import { QuestCard } from './quest-card';
 import { TextCard } from './text-card';
 import { MediaCard } from './media-card';
 import { interactWithPost } from '@/lib/api/feed';
@@ -26,9 +26,20 @@ interface PostCardProps {
 const PostCard = memo(function PostCard({ card, onInteraction }: PostCardProps) {
   const router = useRouter();
 
-  // Handle click to post detail
+  // Handle click to appropriate detail page based on card type
   const handleClick = useCallback(() => {
-    router.push(`/post/${card.id}`);
+    // Quest cards should go to quest page
+    // Check if this is a quest card by looking for quest metadata
+    const isQuestCard = (card as any).metadata?.category === 'quest' || 
+                       (card as any).metadata?.analysis?.category === 'quest' ||
+                       (card as any).novel?.questType;
+    
+    if (isQuestCard) {
+      router.push(`/quest/${card.id}`);
+    } else {
+      // All other cards go to post page
+      router.push(`/post/${card.id}`);
+    }
   }, [card.id, router]);
 
   // Handle author click
@@ -111,9 +122,10 @@ const PostCard = memo(function PostCard({ card, onInteraction }: PostCardProps) 
 
   switch (card.type) {
     case 'novel':
-      return <NovelCard card={card as any} {...commonProps} />;
+      return <QuestCard card={card as any} {...commonProps} />;
     
-    case 'media':
+    case 'image':
+    case 'video':
       return <MediaCard card={card as any} {...commonProps} />;
     
     case 'audio':

@@ -10,14 +10,14 @@ import {
   AcademicCapIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline';
-import type { NovelCard as NovelCardType } from '@/types/feed';
+import type { QuestCard as QuestCardType } from '@/types/feed';
 import { cn } from '@/lib/utils';
 import { PostAuthor } from './post-author';
 import { PostContent } from './post-content';
 import { PostActions } from './post-actions';
 
-interface NovelCardProps {
-  card: NovelCardType;
+interface QuestCardProps {
+  card: QuestCardType;
   onReply?: () => void;
   onRepost?: () => void;
   onLike?: () => void;
@@ -43,7 +43,7 @@ const difficultyLabels = {
   5: 'Expert',
 };
 
-const NovelCard = memo(function NovelCard({
+const QuestCard = memo(function QuestCard({
   card,
   onReply,
   onRepost,
@@ -52,7 +52,7 @@ const NovelCard = memo(function NovelCard({
   onShare,
   onAuthorClick,
   onClick,
-}: NovelCardProps) {
+}: QuestCardProps) {
   const { novel } = card;
 
   return (
@@ -226,7 +226,7 @@ const NovelCard = memo(function NovelCard({
   );
 });
 
-NovelCard.displayName = 'NovelCard';
+QuestCard.displayName = 'QuestCard';
 
-export { NovelCard };
+export { QuestCard };
 

@@ -136,8 +136,10 @@ const generateMockCards = (count: number): FeedCard[] => {
                         i % 2 === 0 ? 4 : 5;
       
       const mediaItems = [];
+      let cardType: 'image' | 'video' = 'image';
       for (let j = 0; j < mediaCount; j++) {
         const mediaType = j === 0 && i % 3 === 0 ? 'video' : 'image';
+        if (j === 0) cardType = mediaType === 'image' ? 'image' : 'video';
         mediaItems.push({
           id: `media-${i}-${j}`,
           type: mediaType,
@@ -153,7 +155,7 @@ const generateMockCards = (count: number): FeedCard[] => {
 
       cards.push({
         id: `card-${i + 1}`,
-        type: 'media',
+        type: cardType,
         author: {
           id: `author-${i % authors.length}`,
           handle: author.handle,

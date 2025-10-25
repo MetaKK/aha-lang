@@ -3,9 +3,10 @@
 export type FeedCardType = 
   | 'novel' 
   | 'text' 
-  | 'media' 
+  | 'image'      // 从数据库
+  | 'video'      // 从数据库
   | 'audio' 
-  | 'ad' 
+  | 'ad'
   | 'quote'
   | 'repost';
 
@@ -66,8 +67,8 @@ export interface CardRef {
   cid: string;
 }
 
-// Novel Card
-export interface NovelCard extends BaseCard {
+// Quest Card (原Novel Card)
+export interface QuestCard extends BaseCard {
   type: 'novel';
   novel: {
     id: string;
@@ -80,6 +81,7 @@ export interface NovelCard extends BaseCard {
     tags: string[];
     language: string;
     estimatedTime?: string; // e.g., "30 min"
+    questType?: 'vocabulary' | 'grammar' | 'comprehension' | 'speaking' | 'writing';
   };
 }
 
@@ -94,9 +96,9 @@ export interface TextCard extends BaseCard {
   };
 }
 
-// Media Card
+// Media Card (使用image或video类型)
 export interface MediaCard extends BaseCard {
-  type: 'media';
+  type: 'image' | 'video';
   media: Media[];
   aspectRatio?: string;
   facets?: Facet[];
@@ -156,7 +158,7 @@ export interface RepostCard extends BaseCard {
 }
 
 export type FeedCard = 
-  | NovelCard 
+  | QuestCard 
   | TextCard 
   | MediaCard 
   | AudioCard 
@@ -224,13 +226,14 @@ export interface PostThread {
 export type InteractionType = 
   | 'like'
   | 'unlike'
+  | 'comment'    // 从数据库
+  | 'reply'
+  | 'share'
   | 'repost'
   | 'unrepost'
   | 'bookmark'
   | 'unbookmark'
-  | 'reply'
-  | 'quote'
-  | 'share';
+  | 'quote';
 
 export interface Interaction {
   cardId: string;

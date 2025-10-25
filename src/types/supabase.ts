@@ -56,8 +56,8 @@ export interface Database {
       feed_cards: {
         Row: {
           id: string
-          type: string
-          title: string
+          type: 'novel' | 'text' | 'image' | 'video' | 'audio' | 'ad' | 'quote' | 'repost'
+          title: string | null
           content: Json
           metadata: Json
           author_id: string
@@ -73,8 +73,8 @@ export interface Database {
         }
         Insert: {
           id?: string
-          type: string
-          title: string
+          type: 'novel' | 'text' | 'image' | 'video' | 'audio' | 'ad' | 'quote' | 'repost'
+          title?: string | null
           content: Json
           metadata?: Json
           author_id: string
@@ -90,8 +90,8 @@ export interface Database {
         }
         Update: {
           id?: string
-          type?: string
-          title?: string
+          type?: 'novel' | 'text' | 'image' | 'video' | 'audio' | 'ad' | 'quote' | 'repost'
+          title?: string | null
           content?: Json
           metadata?: Json
           author_id?: string

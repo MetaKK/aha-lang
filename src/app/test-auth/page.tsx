@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 
 export default function TestAuthPage() {
   const { user, profile, isAuthenticated, loading, error } = useAuthState();
-  const { canCreatePost, canCreateChallenge, hasPermission } = usePermission();
+  const { canCreatePost, canCreateQuest, hasPermission } = usePermission();
   const { signOut, refreshUser } = useAuthActions();
 
   if (loading) {
@@ -125,15 +125,15 @@ export default function TestAuthPage() {
               </div>
               <div className="text-center">
                 <div className={`w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center ${
-                  canCreateChallenge 
+                  canCreateQuest 
                     ? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400'
                     : 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
                 }`}>
                   ✓
                 </div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">创建挑战</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">创建Quest</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {canCreateChallenge ? '允许' : '禁止'}
+                  {canCreateQuest ? '允许' : '禁止'}
                 </p>
               </div>
               <div className="text-center">

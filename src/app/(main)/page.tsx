@@ -11,7 +11,7 @@ import { useAuthGuard } from '@/components/auth/auth-guard';
 import { UserAvatar } from '@/components/auth/user-avatar';
 import { useAuthPrompt } from '@/components/auth/auth-prompt';
 import { useAuthState, usePermission } from '@/hooks/use-auth';
-import { createPost, createChallenge } from '@/lib/api/content';
+import { createPost, createQuest } from '@/lib/api/content';
 import type { ContentCategory } from '@/types/content';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +39,7 @@ export default function HomePage() {
   
   // 认证状态
   const { user, profile, isAuthenticated } = useAuthState();
-  const { canCreatePost, canCreateChallenge } = usePermission();
+  const { canCreatePost, canCreateQuest } = usePermission();
   const { redirectToAuth } = useAuthGuard();
   const { AuthPrompt } = useAuthPrompt();
 
@@ -73,11 +73,11 @@ export default function HomePage() {
           metadata: data.metadata,
         });
       } else {
-        return createChallenge({
+        return createQuest({
           text: data.text,
           media: data.media,
           metadata: data.metadata,
-          challengeType: 'novel', // 默认类型，会被智能分发器覆盖
+          questType: 'novel', // 默认类型，会被智能分发器覆盖
           difficulty: data.metadata?.difficulty,
           estimatedTime: data.metadata?.estimatedTime,
           tags: data.metadata?.tags,
@@ -85,7 +85,7 @@ export default function HomePage() {
       }
     },
     onMutate: async (data) => {
-      const actionText = data.category === 'post' ? '发布帖子' : '创建挑战';
+      const actionText = data.category === 'post' ? '发布帖子' : '创建Quest';
       toast.loading(`${actionText}中...`, { id: 'create-content' });
       
       await queryClient.cancelQueries({ queryKey: ['feed'] });
@@ -113,7 +113,7 @@ export default function HomePage() {
       queryClient.invalidateQueries({ queryKey: ['feed'] });
     },
     onError: (err, data, context) => {
-      const actionText = data.category === 'post' ? '发布帖子' : '创建挑战';
+      const actionText = data.category === 'post' ? '发布帖子' : '创建Quest';
       console.error('[Mutation] Failed to create content:', err);
       
       toast.error(`${actionText}失败，请重试`, { id: 'create-content' });
@@ -140,7 +140,7 @@ export default function HomePage() {
       // 使用优雅的登录提示而不是直接跳转
       return;
     }
-    setCreateCategory('challenge');
+    setCreateCategory('quest');
     setIsCreateModalOpen(true);
   };
 
@@ -320,7 +320,7 @@ export default function HomePage() {
       {/* 统一的浮动操作按钮 - 两个核心入口 */}
       <UnifiedFAB
         onCreatePost={handleCreatePost}
-        onCreateChallenge={handleCreateChallenge}
+        onCreateQuest={handleCreateChallenge}
       />
 
       {/* 统一的创建模态框 - 根据类别动态调整 */}

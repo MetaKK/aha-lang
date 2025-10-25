@@ -61,7 +61,7 @@ export const ROUTES = {
   FEED: '/feed',
   CARD_DETAIL: (id: string) => `/card/${id}`,
   CHAPTER: (id: string) => `/chapter/${id}`,
-  CHALLENGE: (id: string) => `/challenge/${id}`,
+  QUEST: (id: string) => `/quest/${id}`,
   PROFILE: (id: string) => `/profile/${id}`,
   SETTINGS: '/settings',
   LEADERBOARD: '/leaderboard',

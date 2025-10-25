@@ -66,7 +66,7 @@ export interface AuthResponse {
 // 权限相关类型
 export type Permission = 
   | 'create_post'
-  | 'create_challenge'
+  | 'create_quest'
   | 'edit_profile'
   | 'delete_content'
   | 'admin';
@@ -100,7 +100,7 @@ export interface UsePermissionReturn {
   hasAllPermissions: (permissions: Permission[]) => boolean;
   hasAnyPermission: (permissions: Permission[]) => boolean;
   canCreatePost: boolean;
-  canCreateChallenge: boolean;
+  canCreateQuest: boolean;
   canEditProfile: boolean;
   isAdmin: boolean;
 }
