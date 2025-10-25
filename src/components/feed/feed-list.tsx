@@ -112,13 +112,11 @@ const FeedList = memo(function FeedList({
         key={virtualRow.key}
         data-index={virtualRow.index}
         ref={rowVirtualizer.measureElement}
-        className="absolute top-0 left-0 w-full border-b"
+        className="absolute top-0 left-0 w-full border-b border-subtle"
         style={{
           transform: `translate3d(0, ${virtualRow.start}px, 0)`, // Use translate3d for GPU acceleration
-          borderBottomColor: 'rgb(240, 244, 248)',
           willChange: 'transform',
           contain: 'layout style paint', // CSS containment for better performance
-          // Ensure proper positioning
           margin: 0,
           padding: 0,
         }}
@@ -189,7 +187,7 @@ const FeedList = memo(function FeedList({
     return (
       <div className="space-y-0">
         {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className="border-b" style={{borderBottomColor: 'rgb(240, 244, 248)'}}>
+          <div key={index} className="border-b border-subtle">
             <CardSkeleton />
           </div>
         ))}

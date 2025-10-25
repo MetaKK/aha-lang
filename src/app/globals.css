@@ -18,6 +18,7 @@
   --color-destructive-foreground: #ffffff;
   
   --color-border: #E5E5EA;
+  --color-border-subtle: #f0f4f8;
   --color-input: #E5E5EA;
   --color-ring: #0A84FF;
   
@@ -77,6 +78,7 @@
     --color-accent-foreground: #ffffff;
     
     --color-border: #38383a;
+    --color-border-subtle: #f0f4f84d;
     --color-input: #38383a;
     
     --color-background: #000000;
@@ -344,6 +346,11 @@ html {
   .divider {
     background: rgba(255, 255, 255, 0.08);
   }
+}
+
+/* 边框颜色工具类 */
+.border-subtle {
+  border-color: var(--color-border-subtle);
 }
 
 /* iOS 风格卡片 */

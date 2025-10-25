@@ -70,7 +70,7 @@ export default function PostPage({ params }: PostPageProps) {
       <main className="max-w-[600px] mx-auto">
         {/* Parent/Ancestor Posts */}
         {data.ancestors && data.ancestors.length > 0 && (
-          <div className="border-b" style={{borderColor: 'rgb(240, 244, 248)'}}>
+          <div className="border-b border-subtle">
             {data.ancestors.map((ancestor) => (
               <motion.div 
                 key={'id' in ancestor ? ancestor.id : Math.random()} 
@@ -81,7 +81,7 @@ export default function PostPage({ params }: PostPageProps) {
               >
                 <PostCard card={ancestor as FeedCard} />
                 {/* Thread Line */}
-                <div className="absolute left-8 top-16 bottom-0 w-[2px]" style={{backgroundColor: 'rgb(240, 244, 248)'}} />
+                <div className="absolute left-8 top-16 bottom-0 w-[2px] bg-[var(--color-border-subtle)]" />
               </motion.div>
             ))}
           </div>
@@ -89,8 +89,7 @@ export default function PostPage({ params }: PostPageProps) {
 
         {/* Main Post - Enhanced Display with Apple & Notion Design */}
         <motion.article 
-          className="bg-white dark:bg-[#1A1A1A] border-b" 
-          style={{borderColor: 'rgb(240, 244, 248)'}}
+          className="bg-white dark:bg-[#1A1A1A] border-b border-subtle"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
@@ -169,13 +168,12 @@ export default function PostPage({ params }: PostPageProps) {
 
             {/* Stats - X-style responsive layout */}
             <motion.div 
-              className="border-y bg-white dark:bg-[#1A1A1A]" 
-              style={{borderColor: 'rgb(240, 244, 248)'}}
+              className="bg-white dark:bg-[#1A1A1A]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.3 }}
             >
-              <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
+              <div className="flex items-center justify-between px-2 sm:px-3 py-1 sm:py-2">
                 <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 overflow-x-auto scrollbar-hide">
                   <StatButton 
                     icon="reply" 
@@ -229,8 +227,7 @@ export default function PostPage({ params }: PostPageProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 + index * 0.05, duration: 0.3 }}
-                className="border-b bg-white dark:bg-[#1A1A1A]" 
-                style={{borderColor: 'rgb(240, 244, 248)'}}
+                className="border-b bg-white dark:bg-[#1A1A1A] border-subtle"
               >
                 <PostCard card={reply as FeedCard} />
               </motion.div>
@@ -257,7 +254,7 @@ export default function PostPage({ params }: PostPageProps) {
 
 function Header({ onBack }: { onBack: () => void }) {
   return (
-    <header className="sticky top-0 z-10 bg-white/95 dark:bg-[#1A1A1A]/95 backdrop-blur-xl border-b" style={{borderColor: 'rgb(240, 244, 248)'}}>
+    <header className="sticky top-0 z-10 bg-white/95 dark:bg-[#1A1A1A]/95 backdrop-blur-xl border-b border-subtle">
       <div className="flex items-center gap-4 h-[56px] px-4 max-w-[600px] mx-auto">
         <motion.button
           onClick={onBack}
@@ -297,31 +294,31 @@ function StatButton({
     switch (icon) {
       case 'reply':
         return (
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
             <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/>
           </svg>
         );
       case 'retweet':
         return (
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
             <path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"/>
           </svg>
         );
       case 'like':
         return (
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
             <path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"/>
           </svg>
         );
       case 'bookmark':
         return (
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
             <path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"/>
           </svg>
         );
       case 'share':
         return (
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
             <path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"/>
           </svg>
         );
@@ -334,15 +331,15 @@ function StatButton({
     <button
       aria-label={ariaLabel}
       role="button"
-      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 flex-shrink-0 ${
+      className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 flex-shrink-0 ${
         isShare ? 'hover:bg-gray-100 dark:hover:bg-gray-800/50' : ''
       }`}
       style={{ color: 'rgb(83, 100, 113)' }}
     >
-      <div className="flex items-center gap-1 sm:gap-2">
+      <div className="flex items-center gap-2 sm:gap-3">
         {getIcon()}
         {!isShare && (
-          <span className="text-[13px] sm:text-[15px] font-medium whitespace-nowrap">
+          <span className="text-[14px] sm:text-[16px] font-medium whitespace-nowrap">
             {formatValue(value)}
           </span>
         )}
@@ -363,12 +360,14 @@ function ContentRenderer({ post }: { post: any }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25, duration: 0.3 }}
     >
-      {/* Media Card - Images and Videos */}
-      {post.type === 'media' && post.media && (
-        <>
-          {post.media[0]?.type === 'image' && <ImageCard media={post.media} />}
-          {post.media[0]?.type === 'video' && <VideoCard media={post.media} />}
-        </>
+      {/* Image Card - Support both 'image' and 'media' types */}
+      {(post.type === 'image' || (post.type === 'media' && post.media?.[0]?.type === 'image')) && post.media && (
+        <ImageCard media={post.media} />
+      )}
+      
+      {/* Video Card - Support both 'video' and 'media' types */}
+      {(post.type === 'video' || (post.type === 'media' && post.media?.[0]?.type === 'video')) && post.media && (
+        <VideoCard media={post.media} />
       )}
       
       {/* Audio Card */}
@@ -386,47 +385,87 @@ function ContentRenderer({ post }: { post: any }) {
   );
 }
 
-// Image Card Component - Notion-inspired flat design with skeleton
-function ImageCard({ media }: { media: any }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
+// Image Card Component - Support multiple images with grid layout
+function ImageCard({ media }: { media: any[] }) {
+  const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({});
+  const [imageError, setImageError] = useState<Record<string, boolean>>({});
+  
+  const mediaArray = Array.isArray(media) ? media : [media];
+  const count = mediaArray.length;
+
+  const getGridClass = () => {
+    if (count === 1) return 'grid-cols-1';
+    if (count === 2) return 'grid-cols-2';
+    if (count === 3) return 'grid-cols-2';
+    return 'grid-cols-2';
+  };
+
+  const getImageClass = (index: number) => {
+    if (count === 1) return 'aspect-[16/9]';
+    if (count === 3 && index === 0) return 'col-span-2 aspect-[16/9]';
+    return 'aspect-square';
+  };
 
   return (
-    <div className="rounded-2xl overflow-hidden shadow-sm border" style={{borderColor: 'rgb(240, 244, 248)'}}>
-      {!imageLoaded && !imageError && (
-        <Skeleton className="w-full h-64" />
-      )}
-      <img 
-        src={media.url || media[0]?.url} 
-        alt={media.alt || ''} 
-        className={`w-full h-auto object-cover transition-opacity duration-300 ${
-          imageLoaded ? 'opacity-100' : 'opacity-0 absolute'
-        }`}
-        loading="lazy"
-        onLoad={() => setImageLoaded(true)}
-        onError={() => setImageError(true)}
-      />
-      {imageError && (
-        <div className="w-full h-64 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-          <div className="text-center">
-            <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Failed to load image</p>
+    <div className={cn(
+      "rounded-2xl overflow-hidden shadow-sm border grid gap-0.5",
+      "border-subtle",
+      getGridClass()
+    )}>
+      {mediaArray.slice(0, 4).map((item, index) => {
+        const itemId = item.id || `img-${index}`;
+        const isLastItem = index === 3 && count > 4;
+        
+        return (
+          <div key={itemId} className={cn("relative overflow-hidden bg-gray-100 dark:bg-gray-800", getImageClass(index))}>
+            {!imageLoaded[itemId] && !imageError[itemId] && (
+              <Skeleton className="w-full h-full absolute inset-0" />
+            )}
+            <img 
+              src={item.url || item.thumbnail} 
+              alt={item.alt || `Image ${index + 1}`} 
+              className={cn(
+                "w-full h-full object-cover transition-opacity duration-300",
+                imageLoaded[itemId] ? 'opacity-100' : 'opacity-0'
+              )}
+              loading="lazy"
+              onLoad={() => setImageLoaded(prev => ({ ...prev, [itemId]: true }))}
+              onError={() => setImageError(prev => ({ ...prev, [itemId]: true }))}
+            />
+            {imageError[itemId] && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                <div className="text-center">
+                  <svg className="w-8 h-8 text-gray-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Failed</p>
+                </div>
+              </div>
+            )}
+            {isLastItem && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <span className="text-white text-2xl font-bold">+{count - 4}</span>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }
 
-// Video Card Component with skeleton
-function VideoCard({ media }: { media: any }) {
+// Video Card Component with skeleton - Support first video in array
+function VideoCard({ media }: { media: any[] }) {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
+  const mediaArray = Array.isArray(media) ? media : [media];
+  const firstVideo = mediaArray.find(m => m.type === 'video') || mediaArray[0];
+
+  if (!firstVideo) return null;
+
   return (
-    <div className="rounded-2xl overflow-hidden shadow-sm border" style={{borderColor: 'rgb(240, 244, 248)'}}>
+    <div className="rounded-2xl overflow-hidden shadow-sm border border-subtle">
       {!videoLoaded && !videoError && (
         <Skeleton className="w-full h-64 flex items-center justify-center">
           <div className="w-16 h-16 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
@@ -437,12 +476,13 @@ function VideoCard({ media }: { media: any }) {
         </Skeleton>
       )}
       <video 
-        src={media.url || media[0]?.url} 
+        src={firstVideo.url} 
         controls 
-        className={`w-full h-auto transition-opacity duration-300 ${
+        className={cn(
+          "w-full h-auto transition-opacity duration-300",
           videoLoaded ? 'opacity-100' : 'opacity-0 absolute'
-        }`}
-        poster={media.thumbnail}
+        )}
+        poster={firstVideo.thumbnail}
         onLoadedData={() => setVideoLoaded(true)}
         onError={() => setVideoError(true)}
       >
@@ -468,7 +508,7 @@ function AudioCard({ audio }: { audio: any }) {
   const [audioError, setAudioError] = useState(false);
 
   return (
-    <div className="rounded-2xl p-6 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border" style={{borderColor: 'rgb(240, 244, 248)'}}>
+    <div className="rounded-2xl p-6 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-subtle">
       <div className="flex items-center gap-4 mb-4">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -516,7 +556,7 @@ function AudioCard({ audio }: { audio: any }) {
 // Novel Card Component
 function QuestCard({ content }: { content: any }) {
   return (
-    <div className="rounded-2xl p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border" style={{borderColor: 'rgb(240, 244, 248)'}}>
+    <div className="rounded-2xl p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-subtle">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
           <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -538,7 +578,7 @@ function QuestCard({ content }: { content: any }) {
 // Quote Card Component - X-style quote tweet
 function QuoteCard({ quotedCard }: { quotedCard: any }) {
   return (
-    <div className="rounded-2xl border bg-gray-50 dark:bg-gray-800/50" style={{borderColor: 'rgb(240, 244, 248)'}}>
+    <div className="rounded-2xl border bg-gray-50 dark:bg-gray-800/50 border-subtle">
       <div className="p-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 rounded-full overflow-hidden">
@@ -570,7 +610,7 @@ function QuoteCard({ quotedCard }: { quotedCard: any }) {
 // Repost Card Component - X-style repost
 function RepostCard({ originalCard }: { originalCard: any }) {
   return (
-    <div className="rounded-2xl border bg-gray-50 dark:bg-gray-800/50" style={{borderColor: 'rgb(240, 244, 248)'}}>
+    <div className="rounded-2xl border bg-gray-50 dark:bg-gray-800/50 border-subtle">
       <div className="p-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 rounded-full overflow-hidden">
