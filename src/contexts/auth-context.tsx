@@ -9,8 +9,9 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase/client';
+import { getMockSession, isLocalDevelopment } from '@/lib/auth/mock-auth';
 import type { AuthContextType, User, Profile, AuthError } from '@/types/auth';
 import { toast } from 'sonner';
 
@@ -97,6 +98,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // 初始化认证状态
   useEffect(() => {
+    // 检查是否为本地开发且启用了模拟认证
+    if (isLocalDevelopment() && process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true') {
+      // 使用模拟认证
+      const mockSession = getMockSession();
+      if (mockSession) {
+        const transformedUser = transformUser(mockSession.user);
+        setUser(transformedUser);
+        
+        // 创建模拟用户资料
+        const mockProfile: Profile = {
+          id: mockSession.user.id,
+          username: mockSession.user.user_metadata?.username || 'mock_user',
+          display_name: mockSession.user.user_metadata?.display_name || 'Mock User',
+          avatar_url: mockSession.user.user_metadata?.avatar_url || null,
+          level: mockSession.user.user_metadata?.level || 1,
+          experience: mockSession.user.user_metadata?.experience || 0,
+          streak_days: mockSession.user.user_metadata?.streak_days || 0,
+          last_active_at: new Date().toISOString(),
+          created_at: mockSession.user.created_at,
+          updated_at: mockSession.user.updated_at || mockSession.user.created_at,
+        };
+        setProfile(mockProfile);
+      }
+      setLoading(false);
+      return;
+    }
+
     if (!supabase) {
       setLoading(false);
       return;
@@ -107,7 +135,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // 监听认证状态变化
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: string, session: Session | null) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
         if (event === 'SIGNED_IN' && session?.user) {
@@ -207,6 +235,57 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // 用户登录
   const signIn = useCallback(async (email: string, password: string) => {
+    // 检查是否为模拟认证模式
+    if (isLocalDevelopment() && process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true') {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // 模拟登录延迟
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 根据邮箱确定用户类型
+        let userType: 'admin' | 'user' | 'guest' = 'user';
+        if (email.includes('admin')) {
+          userType = 'admin';
+        } else if (email.includes('guest')) {
+          userType = 'guest';
+        }
+
+        // 使用模拟认证
+        const { mockSignIn } = await import('@/lib/auth/mock-auth');
+        const mockSession = mockSignIn(userType);
+        
+        const transformedUser = transformUser(mockSession.user);
+        setUser(transformedUser);
+        
+        // 创建模拟用户资料
+        const mockProfile: Profile = {
+          id: mockSession.user.id,
+          username: mockSession.user.user_metadata?.username || 'mock_user',
+          display_name: mockSession.user.user_metadata?.display_name || 'Mock User',
+          avatar_url: mockSession.user.user_metadata?.avatar_url || null,
+          level: mockSession.user.user_metadata?.level || 1,
+          experience: mockSession.user.user_metadata?.experience || 0,
+          streak_days: mockSession.user.user_metadata?.streak_days || 0,
+          last_active_at: new Date().toISOString(),
+          created_at: mockSession.user.created_at,
+          updated_at: mockSession.user.updated_at || mockSession.user.created_at,
+        };
+        setProfile(mockProfile);
+        
+        toast.success('模拟登录成功！');
+      } catch (err: any) {
+        const errorMessage = err.message || '模拟登录失败';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!supabase) {
       throw new Error('Supabase client not available');
     }
@@ -260,6 +339,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // 用户登出
   const signOut = useCallback(async () => {
+    // 检查是否为模拟认证模式
+    if (isLocalDevelopment() && process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true') {
+      try {
+        setLoading(true);
+        
+        // 使用模拟登出
+        const { mockSignOut } = await import('@/lib/auth/mock-auth');
+        mockSignOut();
+        
+        setUser(null);
+        setProfile(null);
+        toast.success('模拟登出成功！');
+      } catch (err: any) {
+        const errorMessage = err.message || '模拟登出失败';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!supabase) {
       throw new Error('Supabase client not available');
     }

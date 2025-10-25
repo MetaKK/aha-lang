@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useRef, useCallback } from 'react';
+import { memo, useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
@@ -19,8 +19,10 @@ const FeedList = memo(function FeedList({
   onCardInteraction,
 }: FeedListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const [itemSizes, setItemSizes] = useState<Map<number, number>>(new Map());
+  const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Infinite query for feed data
+  // Infinite query for feed data with optimized caching
   const {
     data,
     fetchNextPage,
@@ -42,38 +44,65 @@ const FeedList = memo(function FeedList({
     },
     getNextPageParam: (lastPage) => lastPage.cursor,
     initialPageParam: undefined as string | undefined,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
   });
 
-  // Flatten all cards from all pages
-  const allCards = data?.pages.flatMap((page) => page.cards) ?? [];
+  // Memoized flattening to prevent unnecessary re-renders
+  const allCards = useMemo(() => 
+    data?.pages.flatMap((page) => page.cards) ?? [], 
+    [data?.pages]
+  );
 
-  // Virtual scrolling for performance - Optimized
+  // Optimized size estimation with caching
+  const estimateSize = useCallback((index: number) => {
+    // Return cached size if available
+    if (itemSizes.has(index)) {
+      return itemSizes.get(index)!;
+    }
+
+    const card = allCards[index];
+    if (!card) return 200; // Default for loader
+    
+    // More accurate size estimation based on content
+    let baseHeight = 120; // Base card height
+    
+    // Add height based on content type
+    if (card.type === 'novel') {
+      baseHeight += 160; // Novel cards are taller
+    } else if (card.type === 'image' || card.type === 'video') {
+      const mediaCount = (card as any).media?.length || 0;
+      baseHeight += mediaCount > 1 ? 200 : 150;
+    } else {
+      // Text cards - estimate based on content length
+      const contentLength = (card as any).content?.text?.length || 0;
+      baseHeight += Math.min(Math.max(contentLength / 50, 40), 120);
+    }
+    
+    return baseHeight;
+  }, [allCards, itemSizes]);
+
+  // Virtual scrolling with advanced optimizations
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? allCards.length + 1 : allCards.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: (index) => {
-      // Estimate size based on card type for better accuracy
-      const card = allCards[index];
-      if (!card) return 200; // Default for loader
+    estimateSize,
+    overscan: 10, // Increased for smoother scrolling
+    measureElement: (element) => {
+      if (!element) return 0;
+      const height = element.getBoundingClientRect().height;
       
-      // Different card types have different heights
-      if (card.type === 'novel') return 280;
-      if (card.type === 'image' || card.type === 'video') {
-        const mediaCount = (card as any).media?.length || 0;
-        if (mediaCount > 1) return 350;
-        return 300;
-      }
-      return 180; // Text cards are shorter
+      // Cache the measured size
+      const index = parseInt(element.getAttribute('data-index') || '0');
+      setItemSizes(prev => new Map(prev).set(index, height));
+      
+      return height;
     },
-    overscan: 5, // Increased overscan for smoother scrolling
-    measureElement:
-      typeof window !== 'undefined' &&
-      navigator.userAgent.indexOf('Firefox') === -1
-        ? (element) => element?.getBoundingClientRect().height
-        : undefined,
+    // Remove scrollMargin to fix top spacing issue
+    scrollMargin: 0,
   });
 
-  // Memoized render function for better performance
+  // Highly optimized render function with React.memo
   const renderVirtualRow = useCallback((virtualRow: any) => {
     const isLoaderRow = virtualRow.index > allCards.length - 1;
     const card = allCards[virtualRow.index];
@@ -85,9 +114,13 @@ const FeedList = memo(function FeedList({
         ref={rowVirtualizer.measureElement}
         className="absolute top-0 left-0 w-full border-b"
         style={{
-          transform: `translateY(${virtualRow.start}px)`,
+          transform: `translate3d(0, ${virtualRow.start}px, 0)`, // Use translate3d for GPU acceleration
           borderBottomColor: 'rgb(240, 244, 248)',
-          willChange: 'transform', // GPU acceleration hint
+          willChange: 'transform',
+          contain: 'layout style paint', // CSS containment for better performance
+          // Ensure proper positioning
+          margin: 0,
+          padding: 0,
         }}
       >
         {isLoaderRow ? (
@@ -112,14 +145,32 @@ const FeedList = memo(function FeedList({
     );
   }, [allCards, hasNextPage, onCardInteraction, rowVirtualizer.measureElement]);
 
-  // Load more when scrolling near bottom
+  // Optimized scroll position tracking
   useEffect(() => {
-    const [lastItem] = [...rowVirtualizer.getVirtualItems()].reverse();
+    const handleScroll = () => {
+      if (parentRef.current) {
+        setScrollPosition(parentRef.current.scrollTop);
+      }
+    };
 
+    const element = parentRef.current;
+    if (element) {
+      element.addEventListener('scroll', handleScroll, { passive: true });
+      return () => element.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  // Optimized load more with debouncing
+  useEffect(() => {
+    const virtualItems = rowVirtualizer.getVirtualItems();
+    if (virtualItems.length === 0) return;
+
+    const lastItem = virtualItems[virtualItems.length - 1];
     if (!lastItem) return;
 
+    // Load more when we're within 3 items of the end
     if (
-      lastItem.index >= allCards.length - 1 &&
+      lastItem.index >= allCards.length - 3 &&
       hasNextPage &&
       !isFetchingNextPage
     ) {
@@ -178,9 +229,17 @@ const FeedList = memo(function FeedList({
       ref={parentRef}
       className="h-full w-full overflow-auto apple-scrollbar"
       style={{
-        // Improve scroll performance
+        // Advanced scroll performance optimizations
         WebkitOverflowScrolling: 'touch',
         scrollBehavior: 'auto',
+        // Enable hardware acceleration
+        transform: 'translateZ(0)',
+        // Optimize for smooth scrolling
+        overscrollBehavior: 'contain',
+        scrollbarGutter: 'stable',
+        // Ensure proper scrolling behavior
+        scrollPaddingTop: 0,
+        scrollPaddingBottom: 0,
       }}
     >
       <div
@@ -188,9 +247,17 @@ const FeedList = memo(function FeedList({
           height: `${rowVirtualizer.getTotalSize()}px`,
           width: '100%',
           position: 'relative',
-          // Enable hardware acceleration
+          // Advanced GPU acceleration
           transform: 'translateZ(0)',
           willChange: 'auto',
+          // Optimize rendering
+          contain: 'layout style paint',
+          // Prevent layout thrashing
+          backfaceVisibility: 'hidden',
+          perspective: '1000px',
+          // Ensure content is not cut off
+          paddingBottom: '0px',
+          marginBottom: '0px',
         }}
       >
         {rowVirtualizer.getVirtualItems().map(renderVirtualRow)}

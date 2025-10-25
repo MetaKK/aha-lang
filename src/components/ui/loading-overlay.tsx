@@ -58,7 +58,7 @@ export const LoadingOverlay = memo<LoadingOverlayProps>(({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-sm mx-4"
+          className="relative p-8"
         >
           {/* 加载指示器 */}
           <div className="flex flex-col items-center">

@@ -1,16 +1,33 @@
 // Supabase Client for Browser
 import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
+import { createMockSupabaseClient } from '@/lib/auth/mock-supabase';
+import { isLocalDevelopment } from '@/lib/auth/mock-auth';
 
 // 检查是否启用后端同步
 export const isBackendSyncEnabled = () => {
   return process.env.NEXT_PUBLIC_ENABLE_BACKEND_SYNC === 'true';
 };
 
+// 检查是否启用模拟认证
+export const isMockAuthEnabled = () => {
+  return process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true';
+};
+
 // 创建Supabase客户端
 let supabaseClient: ReturnType<typeof createBrowserClient<Database>> | null = null;
+let mockClient: ReturnType<typeof createMockSupabaseClient> | null = null;
 
 export function getSupabaseClient() {
+  // 如果启用了模拟认证，返回模拟客户端
+  if (isMockAuthEnabled() && isLocalDevelopment()) {
+    if (!mockClient) {
+      mockClient = createMockSupabaseClient();
+      console.log('[Supabase] Mock authentication enabled');
+    }
+    return mockClient as any;
+  }
+
   // 如果未启用后端同步，返回null
   if (!isBackendSyncEnabled()) {
     console.log('[Supabase] Backend sync disabled, using mock data');
