@@ -25,8 +25,6 @@ const mockPosts: FeedCard[] = [];
 // 检查是否启用Mock模式
 const MOCK_DATA_ENABLED = !isBackendSyncEnabled();
 
-console.log('[Content API] Mock data enabled:', MOCK_DATA_ENABLED);
-console.log('[Content API] Backend sync enabled:', isBackendSyncEnabled());
 
 // ============================================================================
 // 核心创建函数
@@ -42,17 +40,10 @@ console.log('[Content API] Backend sync enabled:', isBackendSyncEnabled());
  * 4. 返回标准化响应
  */
 export async function createContent(data: ContentCreationData): Promise<ContentCreationResponse> {
-  console.log('[createContent] Creating content:', {
-    category: data.category,
-    textLength: data.text.length,
-    hasMedia: !!(data.media && data.media.length > 0),
-    MOCK_DATA_ENABLED,
-  });
 
   // 1. 智能分析内容类型
   const analysis = contentDispatcher.analyze(data);
   
-  console.log('[createContent] Content analysis:', analysis);
 
   // 2. 根据模式选择实现
   if (MOCK_DATA_ENABLED) {
@@ -142,11 +133,6 @@ async function createContentMock(
   // 添加到Mock数据存储
   mockPosts.unshift(feedCard);
 
-  console.log('[createContentMock] Created:', {
-    id: feedCard.id,
-    type: feedCard.type,
-    category: data.category,
-  });
 
   return {
     id: feedCard.id,
@@ -237,11 +223,6 @@ async function createContentSupabase(
     throw error;
   }
 
-  console.log('[createContentSupabase] Created:', {
-    id: insertedData.id,
-    type: insertedData.type,
-    category: data.category,
-  });
 
   return {
     id: insertedData.id,

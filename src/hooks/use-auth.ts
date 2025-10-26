@@ -1,14 +1,17 @@
 // 认证相关hooks
 
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth as useAuthContext } from '@/contexts/auth-context';
 import type { UseAuthReturn, UsePermissionReturn, Permission } from '@/types/auth';
+
+// 重新导出核心 useAuth Hook
+export { useAuth } from '@/contexts/auth-context';
 
 /**
  * 基础认证Hook
  * 提供用户状态和认证操作
  */
 export function useAuthState(): UseAuthReturn {
-  const { user, profile, loading, error } = useAuth();
+  const { user, profile, loading, error } = useAuthContext();
 
   return {
     user,
@@ -24,7 +27,7 @@ export function useAuthState(): UseAuthReturn {
  * 提供细粒度的权限控制
  */
 export function usePermission(): UsePermissionReturn {
-  const { user, profile } = useAuth();
+  const { user, profile } = useAuthContext();
 
   const hasPermission = (permission: Permission): boolean => {
     if (!user) return false;
@@ -79,7 +82,7 @@ export function usePermission(): UsePermissionReturn {
  * 提供登录、注册、登出等操作
  */
 export function useAuthActions() {
-  const { signUp, signIn, signOut, updateProfile, refreshUser } = useAuth();
+  const { signUp, signIn, signOut, updateProfile, refreshUser } = useAuthContext();
 
   return {
     signUp,
@@ -95,7 +98,7 @@ export function useAuthActions() {
  * 专门处理用户资料相关操作
  */
 export function useProfile() {
-  const { profile, updateProfile, loading } = useAuth();
+  const { profile, updateProfile, loading } = useAuthContext();
 
   const updateDisplayName = async (displayName: string) => {
     await updateProfile({ display_name: displayName });
@@ -124,7 +127,7 @@ export function useProfile() {
  * 简化的认证状态检查
  */
 export function useAuthStatus() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuthContext();
 
   return {
     isAuthenticated: !!user,

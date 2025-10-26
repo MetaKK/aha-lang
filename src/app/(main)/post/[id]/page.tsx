@@ -1,15 +1,18 @@
 'use client';
 
-import { use, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { use, useMemo, useState, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { fetchPostThread } from '@/lib/api/feed';
+import { HeartIcon as HeartOutline, BookmarkIcon as BookmarkOutline, ArrowPathRoundedSquareIcon } from '@heroicons/react/24/outline';
+import { HeartIcon as HeartSolid, BookmarkIcon as BookmarkSolid } from '@heroicons/react/24/solid';
+import { fetchPostThread, interactWithPost, createComment } from '@/lib/api/feed';
 import { PostCard } from '@/components/feed/post-card';
 import type { FeedCard } from '@/types/feed';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/use-auth';
 
 interface PostPageProps {
   params: Promise<{ id: string }>;
@@ -18,12 +21,93 @@ interface PostPageProps {
 export default function PostPage({ params }: PostPageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
+  const [commentText, setCommentText] = useState('');
 
   // Fetch post thread
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError, refetch, error } = useQuery({
     queryKey: ['post', id],
     queryFn: () => fetchPostThread(id),
   });
+
+  // Like mutation
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      const action = data?.post.viewer?.liked ? 'unlike' : 'like';
+      await interactWithPost(id, action);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+    },
+  });
+
+  // Bookmark mutation
+  const bookmarkMutation = useMutation({
+    mutationFn: async () => {
+      const action = data?.post.viewer?.bookmarked ? 'unbookmark' : 'bookmark';
+      await interactWithPost(id, action);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+    },
+  });
+
+  // Repost mutation
+  const repostMutation = useMutation({
+    mutationFn: async () => {
+      const action = data?.post.viewer?.reposted ? 'unrepost' : 'repost';
+      await interactWithPost(id, action);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+    },
+  });
+
+  // Comment mutation
+  const commentMutation = useMutation({
+    mutationFn: async (content: string) => {
+      await createComment(id, content);
+    },
+    onSuccess: () => {
+      setCommentText('');
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+    },
+  });
+
+  const handleLike = useCallback(() => {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
+    likeMutation.mutate();
+  }, [user, router, likeMutation]);
+
+  const handleBookmark = useCallback(() => {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
+    bookmarkMutation.mutate();
+  }, [user, router, bookmarkMutation]);
+
+  const handleRepost = useCallback(() => {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
+    repostMutation.mutate();
+  }, [user, router, repostMutation]);
+
+  const handleComment = useCallback(() => {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
+    if (commentText.trim()) {
+      commentMutation.mutate(commentText.trim());
+    }
+  }, [user, router, commentText, commentMutation]);
 
   // Loading state
   if (isLoading) {
@@ -49,7 +133,14 @@ export default function PostPage({ params }: PostPageProps) {
       <div className="min-h-screen bg-[#F5F7FA] dark:bg-[#0A0A0A]">
         <Header onBack={() => router.back()} />
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
-          <p className="text-[15px] text-gray-500 dark:text-gray-400">Failed to load post</p>
+          <div className="text-center">
+            <p className="text-[15px] text-gray-500 dark:text-gray-400 mb-2">
+              Failed to load post
+            </p>
+            <p className="text-[13px] text-gray-400 dark:text-gray-500">
+              Post ID: {id}
+            </p>
+          </div>
           <motion.button
             onClick={() => refetch()}
             whileHover={{ scale: 1.05 }}
@@ -166,53 +257,134 @@ export default function PostPage({ params }: PostPageProps) {
             {/* Content Cards - Different Types */}
             <ContentRenderer post={data.post} />
 
-            {/* Stats - X-style responsive layout */}
+            {/* Stats - X-style responsive layout with interactions */}
             <motion.div 
-              className="bg-white dark:bg-[#1A1A1A]"
+              className="bg-white dark:bg-[#1A1A1A] border-t border-subtle"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.3 }}
             >
-              <div className="flex items-center justify-between px-2 sm:px-3 py-1 sm:py-2">
-                <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 overflow-x-auto scrollbar-hide">
-                  <StatButton 
-                    icon="reply" 
-                    label="Replies" 
-                    value={data.replies?.length || 0} 
-                    ariaLabel={`${data.replies?.length || 0} Replies. Reply`}
-                  />
-                  <StatButton 
-                    icon="retweet" 
-                    label="Reposts" 
-                    value={data.post.stats?.reposts || 0} 
-                    ariaLabel={`${data.post.stats?.reposts || 0} reposts. Repost`}
-                  />
-                  <StatButton 
-                    icon="like" 
-                    label="Likes" 
-                    value={data.post.stats?.likes || 0} 
-                    ariaLabel={`${data.post.stats?.likes || 0} Likes. Like`}
-                  />
-                  <StatButton 
-                    icon="bookmark" 
-                    label="Bookmarks" 
-                    value={data.post.stats?.bookmarks || 0} 
-                    ariaLabel={`${data.post.stats?.bookmarks || 0} Bookmarks. Bookmark`}
-                  />
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <StatButton 
-                    icon="share" 
-                    label="Share" 
-                    value={0} 
-                    ariaLabel="Share post"
-                    isShare={true}
-                  />
-                </div>
+              <div className="flex items-center justify-around px-2 py-2">
+                <InteractionButton
+                  icon="reply"
+                  count={data.replies?.length || 0}
+                  onClick={() => {
+                    const input = document.getElementById('comment-input');
+                    input?.focus();
+                  }}
+                  ariaLabel="Reply"
+                />
+                <InteractionButton
+                  icon="repost"
+                  count={data.post.stats?.reposts || 0}
+                  active={data.post.viewer?.reposted}
+                  onClick={handleRepost}
+                  loading={repostMutation.isPending}
+                  ariaLabel="Repost"
+                />
+                <InteractionButton
+                  icon="like"
+                  count={data.post.stats?.likes || 0}
+                  active={data.post.viewer?.liked}
+                  onClick={handleLike}
+                  loading={likeMutation.isPending}
+                  ariaLabel="Like"
+                />
+                <InteractionButton
+                  icon="bookmark"
+                  count={data.post.stats?.bookmarks || 0}
+                  active={data.post.viewer?.bookmarked}
+                  onClick={handleBookmark}
+                  loading={bookmarkMutation.isPending}
+                  ariaLabel="Bookmark"
+                />
               </div>
             </motion.div>
           </div>
         </motion.article>
+
+        {/* Comment Input - X-style */}
+        {user && (
+          <motion.div
+            className="bg-white dark:bg-[#1A1A1A] border-b border-subtle p-4"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.3 }}
+          >
+            <div className="flex gap-3">
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.display_name || profile.username}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                    {(profile?.display_name || profile?.username)?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <textarea
+                  id="comment-input"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Post your reply"
+                  className="w-full px-0 py-2 text-[15px] bg-transparent border-none outline-none resize-none text-gray-900 dark:text-white placeholder-gray-500"
+                  rows={2}
+                  maxLength={280}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                      handleComment();
+                    }
+                  }}
+                />
+                <div className="flex items-center justify-between mt-2">
+                  <div className="text-[13px] text-gray-500">
+                    {commentText.length}/280
+                  </div>
+                  <motion.button
+                    onClick={handleComment}
+                    disabled={!commentText.trim() || commentMutation.isPending}
+                    whileHover={{ scale: commentText.trim() ? 1.02 : 1 }}
+                    whileTap={{ scale: commentText.trim() ? 0.98 : 1 }}
+                    className={cn(
+                      "px-4 py-2 rounded-full text-[15px] font-semibold transition-all",
+                      commentText.trim() && !commentMutation.isPending
+                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                        : "bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                    )}
+                  >
+                    {commentMutation.isPending ? 'Posting...' : 'Reply'}
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Login prompt for non-authenticated users */}
+        {!user && (
+          <motion.div
+            className="bg-white dark:bg-[#1A1A1A] border-b border-subtle p-6 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.3 }}
+          >
+            <p className="text-[15px] text-gray-600 dark:text-gray-400 mb-3">
+              Log in to reply to this post
+            </p>
+            <motion.button
+              onClick={() => router.push('/auth')}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-6 py-2 bg-blue-600 text-white rounded-full text-[15px] font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Log in
+            </motion.button>
+          </motion.div>
+        )}
 
         {/* Replies - X-style layout */}
         {data.replies && data.replies.length > 0 && (
@@ -270,19 +442,21 @@ function Header({ onBack }: { onBack: () => void }) {
   );
 }
 
-// Stat Button Component - X-style interactive buttons
-function StatButton({ 
+// Interaction Button Component - X-style interactive buttons with real functionality
+function InteractionButton({ 
   icon, 
-  label, 
-  value, 
-  ariaLabel, 
-  isShare = false 
+  count, 
+  active = false,
+  onClick,
+  loading = false,
+  ariaLabel 
 }: { 
-  icon: string; 
-  label: string; 
-  value: number; 
+  icon: 'reply' | 'repost' | 'like' | 'bookmark';
+  count: number;
+  active?: boolean;
+  onClick: () => void;
+  loading?: boolean;
   ariaLabel: string;
-  isShare?: boolean;
 }) {
   const formatValue = (val: number) => {
     if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M`;
@@ -291,60 +465,81 @@ function StatButton({
   };
 
   const getIcon = () => {
+    const iconClass = "w-5 h-5";
+    
     switch (icon) {
       case 'reply':
         return (
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+          <svg viewBox="0 0 24 24" className={iconClass} fill="currentColor">
             <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/>
           </svg>
         );
-      case 'retweet':
-        return (
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-            <path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"/>
-          </svg>
+      case 'repost':
+        return active ? (
+          <ArrowPathRoundedSquareIcon className={iconClass} />
+        ) : (
+          <ArrowPathRoundedSquareIcon className={iconClass} />
         );
       case 'like':
-        return (
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-            <path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"/>
-          </svg>
+        return active ? (
+          <HeartSolid className={iconClass} />
+        ) : (
+          <HeartOutline className={iconClass} />
         );
       case 'bookmark':
-        return (
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-            <path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"/>
-          </svg>
-        );
-      case 'share':
-        return (
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-            <path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"/>
-          </svg>
+        return active ? (
+          <BookmarkSolid className={iconClass} />
+        ) : (
+          <BookmarkOutline className={iconClass} />
         );
       default:
         return null;
     }
   };
 
+  const getColorClass = () => {
+    if (loading) return "text-gray-400";
+    if (active) {
+      switch (icon) {
+        case 'like': return "text-red-500";
+        case 'repost': return "text-green-500";
+        case 'bookmark': return "text-blue-500";
+        default: return "text-gray-500";
+      }
+    }
+    return "text-gray-500";
+  };
+
   return (
-    <button
+    <motion.button
+      onClick={onClick}
+      disabled={loading}
       aria-label={ariaLabel}
-      role="button"
-      className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 flex-shrink-0 ${
-        isShare ? 'hover:bg-gray-100 dark:hover:bg-gray-800/50' : ''
-      }`}
-      style={{ color: 'rgb(83, 100, 113)' }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className={cn(
+        "flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 flex-shrink-0",
+        getColorClass()
+      )}
     >
-      <div className="flex items-center gap-2 sm:gap-3">
-        {getIcon()}
-        {!isShare && (
-          <span className="text-[14px] sm:text-[16px] font-medium whitespace-nowrap">
-            {formatValue(value)}
+      <div className="flex items-center gap-2">
+        {loading ? (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <ArrowPathIcon className="w-5 h-5" />
+          </motion.div>
+        ) : (
+          getIcon()
+        )}
+        {count > 0 && (
+          <span className="text-[14px] font-medium whitespace-nowrap">
+            {formatValue(count)}
           </span>
         )}
       </div>
-    </button>
+    </motion.button>
   );
 }
 

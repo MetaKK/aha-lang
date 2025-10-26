@@ -1,225 +1,17 @@
 // Feed API - Client-side implementation with Supabase integration
 import type { FeedCard, FeedResponse, FeedFilters, PostThread, ThreadPost } from '@/types/feed';
-import { createEnhancedMockData } from './mock-data';
+import { createMockData } from './mock-data';
 import { getSupabaseClient, isBackendSyncEnabled } from '@/lib/supabase/client';
 import { getMockPosts } from './content';
+import { commentStorage, interactionStorage } from '@/lib/utils/session-storage';
 
 // Check if mock data should be enabled
 const MOCK_DATA_ENABLED = !isBackendSyncEnabled();
 
-console.log('[Feed API] Mock data enabled:', MOCK_DATA_ENABLED);
-console.log('[Feed API] Backend sync enabled:', isBackendSyncEnabled());
 
-// Generate mock data for testing virtual scrolling
-const generateMockCards = (count: number): FeedCard[] => {
-  const cards: FeedCard[] = [];
-  
-  const novels = [
-    { title: 'Harry Potter and the Philosopher\'s Stone', author: 'J.K. Rowling', difficulty: 3, tags: ['Fantasy', 'Adventure', 'Magic'] },
-    { title: 'Pride and Prejudice', author: 'Jane Austen', difficulty: 5, tags: ['Romance', 'Classic', 'British English'] },
-    { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', difficulty: 4, tags: ['Classic', 'American Literature'] },
-    { title: '1984', author: 'George Orwell', difficulty: 4, tags: ['Dystopian', 'Political', 'Classic'] },
-    { title: 'To Kill a Mockingbird', author: 'Harper Lee', difficulty: 3, tags: ['Classic', 'American South'] },
-  ];
 
-  const authors = [
-    { handle: 'harrypotter', displayName: 'Harry Potter Official', seed: 'harry' },
-    { handle: 'elonmusk', displayName: 'Elon Musk', seed: 'elon' },
-    { handle: 'bbclearning', displayName: 'BBC Learning English', seed: 'bbc' },
-    { handle: 'prideandprejudice', displayName: 'Classic Literature', seed: 'classic' },
-    { handle: 'readingclub', displayName: 'Reading Club', seed: 'reading' },
-    { handle: 'englishteacher', displayName: 'English Teacher', seed: 'teacher' },
-    { handle: 'bookworm', displayName: 'Book Worm', seed: 'bookworm' },
-    { handle: 'literature_lover', displayName: 'Literature Lover', seed: 'literature' },
-  ];
-
-  const textContents = [
-    'Learning English through storytelling is the most effective method! 📚✨',
-    'Just finished reading an amazing chapter. The character development is incredible! 🎭',
-    'Pro tip: Read for 30 minutes every day to improve your vocabulary naturally. 💡',
-    'This book completely changed my perspective on language learning. Highly recommend! 🌟',
-    'The best way to learn idioms is through context in novels. Try it! 📖',
-    'Started my English learning journey today. Feeling excited! 🚀',
-    'Reading classic literature helps with formal English. Give it a try! 🎩',
-    'Just discovered this amazing novel. Perfect for intermediate learners! 🎯',
-  ];
-
-  for (let i = 0; i < count; i++) {
-    // Enhanced card type distribution for better testing
-    const cardType = i % 8 === 0 ? 'novel' : 
-                     i % 6 === 0 ? 'audio' :
-                     i % 4 === 0 ? 'media' : 'text';
-    const author = authors[i % authors.length];
-    const baseTime = Date.now() - 1000 * 60 * (i * 15 + Math.random() * 30);
-
-    if (cardType === 'novel') {
-      const novel = novels[i % novels.length];
-      cards.push({
-        id: `card-${i + 1}`,
-        type: 'novel',
-        author: {
-          id: `author-${i % authors.length}`,
-          handle: author.handle,
-          displayName: author.displayName,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${author.seed}-${i}`,
-          verified: i % 3 === 0,
-          badges: i % 3 === 0 ? ['verified'] : i % 5 === 0 ? ['verified', 'premium'] : undefined,
-        },
-        content: `Discover "${novel.title}" by ${novel.author}! ${textContents[i % textContents.length]}`,
-        createdAt: new Date(baseTime).toISOString(),
-        stats: {
-          replies: Math.floor(Math.random() * 500) + 50,
-          reposts: Math.floor(Math.random() * 2000) + 100,
-          likes: Math.floor(Math.random() * 20000) + 500,
-          bookmarks: Math.floor(Math.random() * 5000) + 100,
-          views: Math.floor(Math.random() * 200000) + 10000,
-        },
-        viewer: {
-          liked: i % 7 === 0,
-          reposted: i % 11 === 0,
-          bookmarked: i % 13 === 0,
-        },
-        novel: {
-          id: `novel-${i}`,
-          title: novel.title,
-          excerpt: 'Click to start reading this amazing story...',
-          coverImage: `https://picsum.photos/400/600?random=${i}`,
-          difficulty: novel.difficulty as 1 | 2 | 3 | 4 | 5,
-          totalChapters: Math.floor(Math.random() * 50) + 10,
-          currentChapter: 1,
-          tags: novel.tags,
-          language: 'en-GB',
-          estimatedTime: `${Math.floor(Math.random() * 40) + 20} min`,
-        },
-      });
-    } else if (cardType === 'audio') {
-      // Audio card with rich content
-      cards.push({
-        id: `card-${i + 1}`,
-        type: 'audio',
-        author: {
-          id: `author-${i % authors.length}`,
-          handle: author.handle,
-          displayName: author.displayName,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${author.seed}-${i}`,
-          verified: i % 3 === 0,
-          badges: i % 3 === 0 ? ['verified'] : undefined,
-        },
-        content: `🎧 ${textContents[i % textContents.length]} Listen to this audio lesson!`,
-        createdAt: new Date(baseTime).toISOString(),
-        stats: {
-          replies: Math.floor(Math.random() * 200) + 20,
-          reposts: Math.floor(Math.random() * 1000) + 100,
-          likes: Math.floor(Math.random() * 5000) + 500,
-          bookmarks: Math.floor(Math.random() * 2000) + 200,
-          views: Math.floor(Math.random() * 50000) + 5000,
-        },
-        viewer: {
-          liked: i % 6 === 0,
-          reposted: false,
-          bookmarked: i % 8 === 0,
-        },
-        audio: {
-          id: `audio-${i}`,
-          url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', // Sample audio
-          title: `English Lesson ${i + 1}: Advanced Vocabulary`,
-          duration: Math.floor(Math.random() * 600) + 120, // 2-12 minutes
-          waveform: Array.from({ length: 50 }, () => Math.random()),
-          coverImage: `https://picsum.photos/400/400?random=${i + 200}`,
-        },
-      });
-    } else if (cardType === 'media') {
-      // Enhanced media cards with different image counts
-      const mediaCount = i % 5 === 0 ? 1 : 
-                        i % 4 === 0 ? 2 : 
-                        i % 3 === 0 ? 3 : 
-                        i % 2 === 0 ? 4 : 5;
-      
-      const mediaItems = [];
-      let cardType: 'image' | 'video' = 'image';
-      for (let j = 0; j < mediaCount; j++) {
-        const mediaType = j === 0 && i % 3 === 0 ? 'video' : 'image';
-        if (j === 0) cardType = mediaType === 'image' ? 'image' : 'video';
-        mediaItems.push({
-          id: `media-${i}-${j}`,
-          type: mediaType,
-          url: `https://picsum.photos/800/600?random=${i * 10 + j}`,
-          thumbnail: `https://picsum.photos/400/300?random=${i * 10 + j}`,
-          alt: `Learning content ${j + 1}`,
-          width: 1920,
-          height: 1080,
-          aspectRatio: mediaCount === 1 ? '16/9' : '1',
-          duration: mediaType === 'video' ? Math.floor(Math.random() * 300) + 60 : undefined,
-        });
-      }
-
-      cards.push({
-        id: `card-${i + 1}`,
-        type: cardType,
-        author: {
-          id: `author-${i % authors.length}`,
-          handle: author.handle,
-          displayName: author.displayName,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${author.seed}-${i}`,
-          verified: i % 3 === 0,
-          badges: i % 3 === 0 ? ['verified', 'organization'] : undefined,
-        },
-        content: `${textContents[i % textContents.length]} 📸 Check out these ${mediaCount} ${mediaCount === 1 ? 'image' : 'images'}!`,
-        createdAt: new Date(baseTime).toISOString(),
-        stats: {
-          replies: Math.floor(Math.random() * 400) + 30,
-          reposts: Math.floor(Math.random() * 3000) + 200,
-          likes: Math.floor(Math.random() * 15000) + 1000,
-          bookmarks: Math.floor(Math.random() * 6000) + 500,
-          views: Math.floor(Math.random() * 300000) + 20000,
-        },
-        viewer: {
-          liked: i % 5 === 0,
-          reposted: false,
-          bookmarked: i % 9 === 0,
-        },
-        media: mediaItems as any,
-      });
-    } else {
-      cards.push({
-        id: `card-${i + 1}`,
-        type: 'text',
-        author: {
-          id: `author-${i % authors.length}`,
-          handle: author.handle,
-          displayName: author.displayName,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${author.seed}-${i}`,
-          verified: i % 4 === 0,
-          badges: i % 4 === 0 ? ['verified'] : i % 6 === 0 ? ['premium'] : undefined,
-        },
-        content: textContents[i % textContents.length],
-        createdAt: new Date(baseTime).toISOString(),
-        stats: {
-          replies: Math.floor(Math.random() * 200) + 10,
-          reposts: Math.floor(Math.random() * 1000) + 50,
-          likes: Math.floor(Math.random() * 10000) + 100,
-          bookmarks: Math.floor(Math.random() * 2000) + 50,
-          views: Math.floor(Math.random() * 100000) + 5000,
-        },
-        viewer: {
-          liked: i % 8 === 0,
-          reposted: false,
-          bookmarked: i % 10 === 0,
-        },
-        entities: {
-          hashtags: i % 3 === 0 ? ['EnglishLearning', 'Reading'] : undefined,
-        },
-      });
-    }
-  }
-
-  return cards;
-};
-
-// Generate enhanced mock cards for testing different media scenarios
-const enhancedMockCards = createEnhancedMockData();
-const generatedMockCards = generateMockCards(42); // Reduced to make room for enhanced cards
-const mockCards: FeedCard[] = [...enhancedMockCards, ...generatedMockCards];
+// Generate mock cards for different scenarios
+const mockCards: FeedCard[] = createMockData();
 
 /**
  * Fetch feed cards with pagination
@@ -231,7 +23,6 @@ export async function fetchFeed(options: {
 }): Promise<FeedResponse> {
   const { cursor, limit = 20, filters } = options;
 
-  console.log('[fetchFeed] Called with:', { cursor, limit, filters, MOCK_DATA_ENABLED });
 
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 800));
@@ -248,14 +39,6 @@ export async function fetchFeed(options: {
     const end = start + limit;
     const cards = allCards.slice(start, end);
 
-    console.log('[fetchFeed] Returning mock data:', { 
-      start, 
-      end, 
-      cardsCount: cards.length, 
-      dynamicPosts: dynamicPosts.length,
-      staticMockCards: mockCards.length,
-      totalCards: allCards.length 
-    });
 
     return {
       cards,
@@ -278,7 +61,6 @@ export async function fetchFeed(options: {
     const start = cursor ? parseInt(cursor) : 0;
     const end = start + limit - 1;
 
-    console.log('[fetchFeed] Fetching from Supabase:', { start, end });
 
     // Get current user for viewer state
     const { data: { user } } = await supabase.auth.getUser();
@@ -309,7 +91,6 @@ export async function fetchFeed(options: {
       throw error;
     }
 
-    console.log('[fetchFeed] Supabase data:', data);
 
     // Get user interactions if logged in
     let userInteractions: any[] = [];
@@ -377,19 +158,42 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
   await new Promise(resolve => setTimeout(resolve, 600));
 
   if (MOCK_DATA_ENABLED) {
-    const post = mockCards.find(card => card.id === postId);
+    // 获取动态创建的内容
+    const dynamicPosts = getMockPosts();
+    
+    // 合并静态mock数据和动态创建的内容
+    const allCards = [...dynamicPosts, ...mockCards];
+    
+    const post = allCards.find(card => card.id === postId);
     if (!post) {
       throw new Error('Post not found');
     }
 
-    // Generate mock replies
-    const replies: ThreadPost[] = [
+    // Get stored comments and interactions from session storage
+    const storedComments = commentStorage.getByPostId(postId);
+    const storedInteractions = interactionStorage.getByPostId(postId);
+    
+    // Get current user's interaction state
+    const mockUserId = 'currentUser';
+    const userInteractions = storedInteractions.filter(i => i.userId === mockUserId);
+    const viewerState = {
+      liked: userInteractions.some(i => i.type === 'like'),
+      bookmarked: userInteractions.some(i => i.type === 'bookmark'),
+      reposted: userInteractions.some(i => i.type === 'repost'),
+    };
+    
+    // Generate mock replies with proper avatar URLs
+    const defaultReplies: ThreadPost[] = [
       {
         ...mockCards[1],
         type: 'text',
         id: `reply-${postId}-1`,
         content: 'This is amazing! I\'ve been looking for something like this.',
         createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+        author: {
+          ...mockCards[1].author,
+          avatar: mockCards[1].author.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${mockCards[1].author.id}`,
+        },
         reply: {
           root: { uri: post.id, cid: post.id },
           parent: { uri: post.id, cid: post.id },
@@ -409,6 +213,10 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
         id: `reply-${postId}-2`,
         content: 'Great initiative! 🎉',
         createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+        author: {
+          ...mockCards[2].author,
+          avatar: mockCards[2].author.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${mockCards[2].author.id}`,
+        },
         reply: {
           root: { uri: post.id, cid: post.id },
           parent: { uri: post.id, cid: post.id },
@@ -424,24 +232,183 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
       } as ThreadPost,
     ];
 
+    // Convert stored comments to ThreadPost format
+    const storedReplies: ThreadPost[] = storedComments.map(comment => ({
+      id: comment.id,
+      type: 'text' as const,
+      content: comment.content,
+      author: {
+        id: comment.author.id,
+        handle: comment.author.handle,
+        displayName: comment.author.displayName,
+        avatar: comment.author.avatar,
+        verified: false,
+      },
+      createdAt: comment.createdAt,
+      reply: {
+        root: { uri: postId, cid: postId },
+        parent: { uri: postId, cid: postId },
+      },
+      stats: {
+        replies: 0,
+        reposts: 0,
+        likes: 0,
+        bookmarks: 0,
+        views: 0,
+      },
+      replyCount: 0,
+    }));
+
+    // Combine default replies with stored comments
+    const replies: ThreadPost[] = [...storedReplies, ...defaultReplies].sort((a, b) => 
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+
     return {
       post: {
         ...post,
+        viewer: viewerState,
         replyCount: replies.length,
       } as ThreadPost,
       replies,
     };
   }
 
-  // TODO: Implement Supabase integration
+  // Supabase implementation
   try {
-    // const { data, error } = await supabase
-    //   .from('feed_cards')
-    //   .select('*')
-    //   .eq('id', postId)
-    //   .single();
-    
-    throw new Error('Not implemented');
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
+
+    // Fetch main post with author info
+    const { data: postData, error: postError } = await (supabase as any)
+      .from('feed_cards')
+      .select(`
+        *,
+        author:profiles!feed_cards_author_id_fkey (
+          id,
+          username,
+          display_name,
+          avatar_url,
+          level
+        )
+      `)
+      .eq('id', postId)
+      .single();
+
+    if (postError) {
+      console.error('[fetchPostThread] Post fetch error:', postError);
+      throw new Error('Post not found');
+    }
+
+    if (!postData) {
+      throw new Error('Post not found');
+    }
+
+    // Get current user for interaction state
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Fetch user's interaction state
+    let viewerState = { liked: false, bookmarked: false, reposted: false };
+    if (user) {
+      const { data: interactions } = await (supabase as any)
+        .from('interactions')
+        .select('type')
+        .eq('target_id', postId)
+        .eq('target_type', 'card')
+        .eq('user_id', user.id)
+        .in('type', ['like', 'bookmark', 'repost']);
+
+      if (interactions) {
+        viewerState = {
+          liked: interactions.some((i: any) => i.type === 'like'),
+          bookmarked: interactions.some((i: any) => i.type === 'bookmark'),
+          reposted: interactions.some((i: any) => i.type === 'repost'),
+        };
+      }
+    }
+
+    // Fetch replies (comments)
+    const { data: repliesData, error: repliesError } = await (supabase as any)
+      .from('interactions')
+      .select(`
+        *,
+        author:profiles!interactions_user_id_fkey (
+          id,
+          username,
+          display_name,
+          avatar_url,
+          level
+        )
+      `)
+      .eq('target_id', postId)
+      .eq('target_type', 'card')
+      .eq('type', 'comment')
+      .order('created_at', { ascending: true });
+
+    if (repliesError) {
+      console.error('[fetchPostThread] Replies fetch error:', repliesError);
+    }
+
+    // Transform post data to FeedCard format
+    const mainPost: ThreadPost = {
+      id: postData.id,
+      type: postData.type || 'text',
+      content: postData.content?.text || '',
+      author: {
+        id: postData.author.id,
+        handle: postData.author.username,
+        displayName: postData.author.display_name || postData.author.username,
+        avatar: postData.author.avatar_url,
+        verified: postData.author.level >= 10,
+      },
+      stats: {
+        replies: postData.comments_count || 0,
+        reposts: postData.shares_count || 0,
+        likes: postData.likes_count || 0,
+        bookmarks: 0,
+        views: postData.views_count || 0,
+      },
+      viewer: viewerState,
+      createdAt: postData.created_at,
+      media: postData.content?.media,
+      novel: postData.metadata?.novel,
+      replyCount: postData.comments_count || 0,
+    };
+
+    // Transform replies data
+    const replies: ThreadPost[] = (repliesData || []).map((reply: any) => ({
+      id: reply.id,
+      type: 'text',
+      content: reply.content || '',
+      author: {
+        id: reply.author.id,
+        handle: reply.author.username,
+        displayName: reply.author.display_name || reply.author.username,
+        avatar: reply.author.avatar_url,
+        verified: reply.author.level >= 10,
+      },
+      stats: {
+        replies: 0,
+        reposts: 0,
+        likes: 0,
+        bookmarks: 0,
+        views: 0,
+      },
+      createdAt: reply.created_at,
+      reply: {
+        root: { uri: postId, cid: postId },
+        parent: { uri: postId, cid: postId },
+      },
+      replyCount: 0,
+    }));
+
+
+    return {
+      post: mainPost,
+      replies,
+    };
   } catch (error) {
     console.error('Failed to fetch post thread:', error);
     throw error;
@@ -449,17 +416,32 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
 }
 
 /**
- * Perform interaction on a post
+ * Create a comment on a post
  */
-export async function interactWithPost(
+export async function createComment(
   postId: string,
-  action: 'like' | 'unlike' | 'repost' | 'unrepost' | 'bookmark' | 'unbookmark'
+  content: string
 ): Promise<void> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300));
 
   if (MOCK_DATA_ENABLED) {
-    console.log(`[Mock] ${action} post:`, postId);
+    
+    // Get current user info (mock)
+    const mockUser = {
+      id: 'currentUser',
+      handle: 'you',
+      displayName: 'You',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=you',
+    };
+    
+    // Store comment in session storage
+    const comment = commentStorage.add({
+      postId,
+      content,
+      author: mockUser,
+    });
+    
     return;
   }
 
@@ -476,7 +458,98 @@ export async function interactWithPost(
       throw new Error('User not authenticated');
     }
 
-    console.log(`[interactWithPost] ${action} post:`, postId);
+
+    // Insert comment interaction
+    const { error } = await (supabase as any)
+      .from('interactions')
+      .insert({
+        user_id: user.id,
+        target_id: postId,
+        target_type: 'card',
+        type: 'comment',
+        content: content,
+      });
+
+    if (error) {
+      console.error('[createComment] Error:', error);
+      throw error;
+    }
+
+    // Update comment count on the post
+    const { error: updateError } = await (supabase as any)
+      .from('feed_cards')
+      .update({
+        comments_count: (supabase as any).raw('comments_count + 1')
+      })
+      .eq('id', postId);
+
+    if (updateError) {
+      console.error('[createComment] Update count error:', updateError);
+    }
+
+  } catch (error) {
+    console.error(`Failed to create comment:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Perform interaction on a post
+ */
+export async function interactWithPost(
+  postId: string,
+  action: 'like' | 'unlike' | 'repost' | 'unrepost' | 'bookmark' | 'unbookmark'
+): Promise<void> {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  if (MOCK_DATA_ENABLED) {
+    
+    // Get current user info (mock)
+    const mockUser = {
+      id: 'currentUser',
+      handle: 'you',
+      displayName: 'You',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=you',
+    };
+    
+    // Handle different actions in mock mode
+    if (action === 'like' || action === 'bookmark' || action === 'repost') {
+      // Add interaction
+      const interaction = interactionStorage.add({
+        postId,
+        type: action,
+        userId: mockUser.id,
+      });
+    } else if (action === 'unlike' || action === 'unbookmark' || action === 'unrepost') {
+      // Remove interaction
+      const type = action.replace('un', '') as 'like' | 'bookmark' | 'repost';
+      const interactions = interactionStorage.getByPostId(postId);
+      const existingInteraction = interactions.find(i => 
+        i.userId === mockUser.id && i.type === type
+      );
+      
+      if (existingInteraction) {
+        interactionStorage.remove(existingInteraction.id);
+      }
+    }
+    
+    return;
+  }
+
+  // Supabase implementation
+  try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
 
     // Handle different actions
     if (action === 'like') {
@@ -568,7 +641,6 @@ export async function interactWithPost(
       }
     }
 
-    console.log(`[interactWithPost] ${action} completed successfully`);
   } catch (error) {
     console.error(`Failed to ${action} post:`, error);
     throw error;
@@ -585,7 +657,6 @@ export async function createPost(options: {
 }): Promise<FeedCard> {
   const { content, type = 'text', media } = options;
   
-  console.log('[createPost] Creating post:', { content, type, MOCK_DATA_ENABLED });
 
   if (MOCK_DATA_ENABLED) {
     // Simulate network delay for mock mode
@@ -621,7 +692,6 @@ export async function createPost(options: {
     // Add to mock cards array for persistence in this session
     mockCards.unshift(newPost);
 
-    console.log('[createPost] Mock post created:', newPost.id);
     return newPost;
   }
 
@@ -704,7 +774,6 @@ export async function createPost(options: {
       ...(media && media.length > 0 ? { media } : {}),
     };
 
-    console.log('[createPost] Supabase post created:', newPost.id);
     return newPost;
   } catch (error) {
     console.error('[createPost] Failed to create post:', error);

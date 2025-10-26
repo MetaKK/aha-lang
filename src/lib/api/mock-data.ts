@@ -1,7 +1,7 @@
-// Enhanced Mock Data for Media Card Testing
+// Mock Data for Media Cards
 import type { FeedCard } from '@/types/feed';
 
-export const createEnhancedMockData = (): FeedCard[] => {
+export const createMockData = (): FeedCard[] => {
   const authors = [
     { handle: 'photographer', displayName: 'Travel Photographer', seed: 'photo' },
     { handle: 'videographer', displayName: 'Content Creator', seed: 'video' },
