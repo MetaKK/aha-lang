@@ -27,7 +27,6 @@ interface UnifiedFABProps {
 
 export function UnifiedFAB({ onCreatePost, onCreateQuest }: UnifiedFABProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const { isAuthenticated } = useAuthState();
   const { showPrompt, AuthPrompt } = useAuthPrompt();
 
@@ -134,11 +133,8 @@ export function UnifiedFAB({ onCreatePost, onCreateQuest }: UnifiedFABProps) {
       {/* Main FAB Button */}
       <motion.button
         onClick={() => setIsExpanded(!isExpanded)}
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-        className="group relative flex items-center justify-center w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+        className="relative flex items-center justify-center w-14 h-14 rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500/30"
         aria-label={isExpanded ? 'Close menu' : 'Create new content'}
-        whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         animate={{
           rotate: isExpanded ? 45 : 0,
@@ -150,32 +146,8 @@ export function UnifiedFAB({ onCreatePost, onCreateQuest }: UnifiedFABProps) {
           damping: 20
         }}
       >
-        {/* Background glow effect */}
-        <motion.div
-          className="absolute inset-0 bg-blue-500 rounded-full opacity-0 group-hover:opacity-20"
-          animate={{
-            scale: isHovered ? [1, 1.2, 1] : 1,
-            opacity: isHovered ? [0, 0.3, 0] : 0
-          }}
-          transition={{
-            duration: 0.6,
-            ease: "easeInOut",
-            repeat: isHovered ? Infinity : 0
-          }}
-        />
-        
         {/* Icon */}
-        <motion.div
-          className="relative z-10"
-          animate={{
-            rotate: isHovered && !isExpanded ? 90 : 0
-          }}
-          transition={{
-            type: 'spring',
-            stiffness: 300,
-            damping: 20
-          }}
-        >
+        <div className="relative z-10">
           <AnimatePresence mode="wait">
             {isExpanded ? (
               <motion.div
@@ -199,38 +171,8 @@ export function UnifiedFAB({ onCreatePost, onCreateQuest }: UnifiedFABProps) {
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
-        
-        {/* Ripple effect on click */}
-        <motion.div
-          className="absolute inset-0 bg-white rounded-full pointer-events-none"
-          initial={{ scale: 0, opacity: 0 }}
-          whileTap={{
-            scale: [0, 1.5],
-            opacity: [0.3, 0]
-          }}
-          transition={{
-            duration: 0.4
-          }}
-        />
+        </div>
       </motion.button>
-      
-      {/* Tooltip */}
-      <AnimatePresence>
-        {isHovered && !isExpanded && (
-          <motion.div
-            className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap pointer-events-none"
-            initial={{ opacity: 0, y: 10, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-          >
-            Create new content
-            {/* Arrow */}
-            <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       
       {/* 登录提示 */}
       <AuthPrompt

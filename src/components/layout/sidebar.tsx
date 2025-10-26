@@ -242,7 +242,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               duration: 0.35,
               ease: [0.4, 0, 0.2, 1]
             }}
-            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden border-r border-gray-200/50 dark:border-gray-700/50"
+            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden"
             style={{
               // Apple风格的性能优化
               willChange: 'transform',
