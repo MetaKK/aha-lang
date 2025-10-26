@@ -346,7 +346,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 
                 {/* 下载按钮 - 一比一复刻X */}
                 <motion.button
-                  className="relative z-10 w-full bg-black text-white py-4 px-6 rounded-xl text-base font-semibold hover:bg-gray-800 transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                  className="relative z-10 w-full bg-black dark:bg-white text-white dark:text-black py-4 px-6 rounded-xl text-base font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >

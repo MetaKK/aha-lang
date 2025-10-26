@@ -97,35 +97,14 @@ export const LoginForm = memo<LoginFormProps>(({ onSuccess, onSwitchToRegister }
         </SubmitButton>
 
         {/* 切换注册 */}
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          <span style={{ color: 'var(--c-texSec)', fontSize: '14px' }}>
+        <div className="text-center mt-5">
+          <span className="text-gray-600 dark:text-gray-400 text-sm">
             还没有账号？{' '}
             <button
               type="button"
               onClick={onSwitchToRegister}
-              style={{ 
-                color: '#007AFF', 
-                background: 'none', 
-                border: 'none', 
-                cursor: 'pointer', 
-                textDecoration: 'none',
-                fontSize: '14px',
-                fontWeight: '600',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                transition: 'all 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
+              className="text-blue-500 dark:text-blue-400 bg-transparent border-none cursor-pointer no-underline text-sm font-semibold px-3 py-2 rounded-lg transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-transparent"
               disabled={isSubmitting || loading}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(0, 122, 255, 0.1)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'none';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
             >
               立即注册
             </button>

@@ -9,39 +9,13 @@ interface AuthHeaderProps {
 
 export const AuthHeader = memo<AuthHeaderProps>(({ title, subtitle }) => {
   return (
-    <div style={{ 
-      fontWeight: 700, 
-      marginBottom: '23px', 
-      textAlign: 'center', 
-      lineHeight: 1.1, 
-      maxWidth: '380px', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center' 
-    }}>
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        textAlign: 'start', 
-        width: '320px' 
-      }}>
-        <h1 style={{ 
-          fontWeight: 600, 
-          fontSize: '22px', 
-          lineHeight: '26px', 
-          margin: '0px', 
-          textWrap: 'balance', 
-          color: '#1D1D1F' 
-        }}>
+    <div className="font-bold mb-6 text-center leading-tight max-w-sm flex flex-col items-center">
+      <div className="flex flex-col text-left w-80">
+        <h1 className="font-semibold text-xl leading-6 m-0 text-balance text-gray-900 dark:text-gray-100">
           {title}
         </h1>
         {subtitle && (
-          <p style={{ 
-            fontSize: '14px', 
-            color: 'var(--c-texSec)', 
-            margin: '8px 0 0 0',
-            lineHeight: '18px'
-          }}>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 leading-5">
             {subtitle}
           </p>
         )}

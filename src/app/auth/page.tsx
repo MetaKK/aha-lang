@@ -85,43 +85,34 @@ export default function AuthPage() {
           }
         }
       `}</style>
-      <div className="min-h-screen" style={{ backgroundColor: '#ffffff', scrollbarColor: 'rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.05)' }}>
+      <div className="min-h-screen bg-white dark:bg-gray-900 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       {/* 顶部导航栏 */}
-      <div style={{ position: 'fixed', zIndex: 99, fontFamily: 'inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"', width: '100%' }}>
-        <div style={{ fontSize: '15px', whiteSpace: 'nowrap', top: '0px', width: '100%', background: '#ffffff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: 'none', paddingInline: '20px' }}>
-          <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '54px' }}>
-            <div style={{ flexShrink: 0 }}>
-              <a href="/" rel="noopener noreferrer" aria-label="AhaBook" style={{ display: 'block', color: 'inherit', textDecoration: 'none', userSelect: 'auto', cursor: 'pointer' }}>
-                <div style={{ 
-                  fontWeight: 500, 
-                  fontSize: '24px',
-                  background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1d4ed8 75%, #1e40af 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  backgroundSize: '200% 200%',
-                  animation: 'gradientShift 3s ease-in-out infinite'
-                }}>
+      <div className="fixed z-50 w-full font-sans">
+        <div className="text-[15px] whitespace-nowrap top-0 w-full bg-white dark:bg-gray-900 flex flex-col items-center justify-center shadow-none px-5">
+          <nav className="flex items-center justify-between w-full h-[54px]">
+            <div className="flex-shrink-0">
+              <a href="/" rel="noopener noreferrer" aria-label="AhaBook" className="block text-inherit no-underline select-auto cursor-pointer">
+                <div className="font-medium text-2xl bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent bg-[length:200%_200%] animate-[gradientShift_3s_ease-in-out_infinite]">
                   AhaBook
                 </div>
               </a>
             </div>
-            <div style={{ cursor: 'pointer', color: '#8E8E93', fontWeight: '500' }}>帮助</div>
+            <div className="cursor-pointer text-gray-500 dark:text-gray-400 font-medium">帮助</div>
           </nav>
         </div>
       </div>
 
       {/* 占位空间 */}
-      <div style={{ width: '100%', height: '54px', flexShrink: 0, flexGrow: 0 }}></div>
+      <div className="w-full h-[54px] flex-shrink-0 flex-grow-0"></div>
 
       {/* 主要内容 */}
-      <main style={{ color: '#1D1D1F', fill: 'currentcolor', lineHeight: 1.5, fontFamily: 'inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"', background: '#ffffff', fontSize: '17px', WebkitFontSmoothing: 'antialiased', minHeight: '0px', flexGrow: 1 }}>
-        <div style={{ display: 'flex', flexDirection: 'row', width: '100%', height: '100%', maxHeight: '100vh' }}>
-          <section style={{ paddingInline: '20px', width: '100%', margin: '0px auto', overflow: 'visible' }}>
-            <div style={{ width: '100%', height: '100%', borderRadius: '4px' }}>
-              <div style={{ width: '100%', maxWidth: '1260px', margin: '0px auto' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ minHeight: '4vh', flex: '1 1 0%' }}></div>
+      <main className="text-gray-900 dark:text-gray-100 fill-current leading-6 font-sans bg-white dark:bg-gray-900 text-[17px] antialiased min-h-0 flex-grow">
+        <div className="flex flex-row w-full h-full max-h-screen">
+          <section className="px-5 w-full mx-auto overflow-visible">
+            <div className="w-full h-full rounded">
+              <div className="w-full max-w-5xl mx-auto">
+                <div className="flex flex-col items-center">
+                  <div className="min-h-[4vh] flex-1"></div>
                   
                   {/* 标题区域 */}
                   <AuthHeader 
@@ -130,8 +121,8 @@ export default function AuthPage() {
                   />
 
                   {/* 登录卡片 */}
-                  <div className="notion-login" style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '4vh' }}>
-                    <div style={{ display: 'flex', width: '100%', flexDirection: 'column' }}>
+                  <div className="w-full max-w-80 flex flex-col items-center mb-[4vh]">
+                    <div className="flex w-full flex-col">
                       
                       {/* 社交登录按钮 */}
                       <SocialLoginSection 
@@ -140,8 +131,8 @@ export default function AuthPage() {
 
                       {/* 分隔线 */}
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', width: '100%', height: '41px', flex: '0 0 auto' }}>
-                          <div role="separator" style={{ width: '100%', height: '1px', visibility: 'visible', borderBottom: '1px solid var(--c-borSec)' }}></div>
+                        <div className="flex items-center justify-center pointer-events-none w-full h-10 flex-none">
+                          <div role="separator" className="w-full h-px visible border-b border-gray-200 dark:border-gray-700"></div>
                         </div>
 
                         {/* 表单内容 */}
@@ -168,8 +159,8 @@ export default function AuthPage() {
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.2 }}
                             >
-                              <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                                <p style={{ color: '#8E8E93', fontSize: '14px', margin: 0 }}>
+                              <div className="text-center py-5">
+                                <p className="text-gray-500 dark:text-gray-400 text-sm m-0">
                                   选择登录方式
                                 </p>
                               </div>
@@ -178,22 +169,22 @@ export default function AuthPage() {
                         </AnimatePresence>
 
                         {/* 错误信息 */}
-                        <div aria-live="polite" role="alert" aria-atomic="true" tabIndex={-1} style={{ fontSize: '14px', color: 'rgb(235, 87, 87)', textAlign: 'center', display: 'none', width: '100%', margin: '12px 0px' }}></div>
+                        <div aria-live="polite" role="alert" aria-atomic="true" tabIndex={-1} className="text-sm text-red-500 text-center hidden w-full my-3"></div>
                       </div>
                     </div>
 
                     {/* 底部链接 */}
-                    <div style={{ width: '100%', marginBottom: '0px', fontSize: '12px', lineHeight: '16px', color: '#8E8E93', textAlign: 'center', textWrap: 'balance' }}>
-                      <p style={{ marginBottom: '0px' }}>
+                    <div className="w-full mb-0 text-xs leading-4 text-gray-500 dark:text-gray-400 text-center text-balance">
+                      <p className="mb-0">
                         继续操作即表示你确认已理解并同意
-                        <a href="#" target="_blank" rel="noopener noreferrer" style={{ display: 'inline', color: '#007AFF', textDecoration: 'underline', userSelect: 'auto', cursor: 'pointer' }}>条款和条件</a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="inline text-blue-500 underline select-auto cursor-pointer">条款和条件</a>
                         和
-                        <a href="#" target="_blank" rel="noopener noreferrer" style={{ display: 'inline', color: '#007AFF', textDecoration: 'underline', userSelect: 'auto', cursor: 'pointer' }}>隐私政策</a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="inline text-blue-500 underline select-auto cursor-pointer">隐私政策</a>
                       </p>
                     </div>
                   </div>
 
-                  <div style={{ minHeight: '0px', flex: '1 1 0%' }}></div>
+                  <div className="min-h-0 flex-1"></div>
                 </div>
               </div>
             </div>

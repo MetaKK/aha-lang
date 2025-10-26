@@ -37,60 +37,25 @@ export const FormInput = memo(forwardRef<HTMLInputElement, FormInputProps>(({
 
   const inputType = type === 'password' && showPasswordToggle ? (showPassword ? 'text' : 'password') : type;
 
-  const containerStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    fontSize: '15px',
-    lineHeight: '30px',
-    position: 'relative' as const,
-    borderRadius: '6px',
-    boxShadow: isFocused 
-      ? '0 0 0 2px rgba(35, 131, 226, 0.2)' 
-      : 'var(--cd-inpBoxSha)',
-    backgroundColor: 'transparent',
-    cursor: 'text',
-    paddingTop: '4px',
-    paddingBottom: '4px',
-    paddingInline: '10px',
-    marginTop: '4px',
-    marginBottom: '8px',
-    transition: 'all 100ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    border: isFocused 
-      ? '1px solid rgba(35, 131, 226, 0.3)' 
-      : 'none',
-  };
+  const containerClass = `flex items-center w-full text-[15px] leading-[30px] relative rounded-md cursor-text pt-1 pb-1 px-2.5 mt-1 mb-2 transition-all duration-100 ${
+    isFocused 
+      ? 'ring-2 ring-blue-500/20 border border-blue-500/30 bg-white/50 dark:bg-gray-800/50' 
+      : 'bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50'
+  }`;
 
-  const inputStyles = {
-    fontSize: 'inherit',
-    lineHeight: 'inherit',
-    border: 'none',
-    background: 'none',
-    width: '100%',
-    display: 'block',
-    resize: 'none' as const,
-    padding: '0px',
-    outline: 'none',
-    color: 'var(--c-texPri)',
-  };
+  const inputClass = "text-[15px] leading-[30px] border-none bg-transparent w-full block resize-none p-0 outline-none text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400";
 
   return (
     <div>
       <label 
         htmlFor={id} 
-        style={{ 
-          display: 'block', 
-          marginBottom: '4px', 
-          fontSize: '12px', 
-          color: 'var(--c-texSec)', 
-          fontWeight: 500 
-        }}
+        className="block mb-1 text-xs text-gray-600 dark:text-gray-400 font-medium"
       >
         {label}
-        {required && <span style={{ color: 'rgb(235, 87, 87)', marginLeft: '4px' }}>*</span>}
+        {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       
-      <div style={containerStyles}>
+      <div className={containerClass}>
         <input
           ref={ref}
           id={id}
@@ -106,7 +71,7 @@ export const FormInput = memo(forwardRef<HTMLInputElement, FormInputProps>(({
           onChange={onChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          style={inputStyles}
+          className={inputClass}
           disabled={disabled}
         />
         
@@ -114,26 +79,14 @@ export const FormInput = memo(forwardRef<HTMLInputElement, FormInputProps>(({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            style={{ 
-              position: 'absolute', 
-              right: '10px', 
-              top: '50%', 
-              transform: 'translateY(-50%)', 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer', 
-              padding: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer p-1 flex items-center justify-center"
             disabled={disabled}
             aria-label={showPassword ? '隐藏密码' : '显示密码'}
           >
             {showPassword ? (
-              <EyeSlashIcon style={{ width: '16px', height: '16px', color: 'var(--c-texSec)' }} />
+              <EyeSlashIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             ) : (
-              <EyeIcon style={{ width: '16px', height: '16px', color: 'var(--c-texSec)' }} />
+              <EyeIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             )}
           </button>
         )}
@@ -143,13 +96,7 @@ export const FormInput = memo(forwardRef<HTMLInputElement, FormInputProps>(({
         <div 
           id={`${id}-error`}
           role="alert"
-          style={{ 
-            color: 'rgb(235, 87, 87)', 
-            fontSize: '12px', 
-            lineHeight: '16px', 
-            marginTop: '4px', 
-            marginBottom: '8px' 
-          }}
+          className="text-red-500 text-xs leading-4 mt-1 mb-2"
         >
           {error}
         </div>

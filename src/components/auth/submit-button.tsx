@@ -24,129 +24,36 @@ export const SubmitButton = memo<SubmitButtonProps>(({
 }) => {
   const isDisabled = disabled || loading;
   
-  const getButtonStyles = () => {
-    const baseStyles = {
-      userSelect: 'none' as const,
-      cursor: isDisabled ? 'not-allowed' : 'pointer',
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      whiteSpace: 'nowrap' as const,
-      height: '48px',
-      borderRadius: '12px',
-      fontSize: '16px',
-      lineHeight: 1,
-      paddingInline: '20px',
-      fontWeight: 600,
-      color: 'white',
-      marginTop: '16px',
-      marginBottom: '16px',
-      width: '100%',
-      border: 'none',
-      position: 'relative' as const,
-      overflow: 'hidden',
-      transition: 'all 100ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-      backdropFilter: 'blur(10px)',
-      WebkitBackdropFilter: 'blur(10px)',
-    };
-
-    if (variant === 'success') {
-      return {
-        ...baseStyles,
-        background: isDisabled 
-          ? 'linear-gradient(135deg, #E5E5EA 0%, #D1D1D6 100%)' 
-          : 'linear-gradient(135deg, #34C759 0%, #28A745 100%)',
-        boxShadow: isDisabled
-          ? '0 1px 3px rgba(0, 0, 0, 0.1)'
-          : '0 2px 8px rgba(52, 199, 89, 0.25), 0 1px 4px rgba(52, 199, 89, 0.15)',
-      };
+  const getButtonClasses = () => {
+    const baseClasses = "select-none inline-flex items-center justify-center whitespace-nowrap h-12 rounded-xl text-base font-semibold text-white mt-4 mb-4 w-full border-none relative overflow-hidden transition-all duration-100 backdrop-blur-sm";
+    
+    if (isDisabled) {
+      return `${baseClasses} cursor-not-allowed bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-500 dark:to-gray-600 shadow-sm`;
     }
 
-    return {
-      ...baseStyles,
-      background: isDisabled 
-        ? 'linear-gradient(135deg, #E5E5EA 0%, #D1D1D6 100%)' 
-        : 'linear-gradient(135deg, #007AFF 0%, #0051D5 100%)',
-      boxShadow: isDisabled
-        ? '0 1px 3px rgba(0, 0, 0, 0.1)'
-        : '0 2px 8px rgba(0, 122, 255, 0.25), 0 1px 4px rgba(0, 122, 255, 0.15)',
-    };
-  };
-
-  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isDisabled) return;
-    
-    const target = e.currentTarget;
-    target.style.transform = 'translateY(-1px) scale(1.005)';
-    
     if (variant === 'success') {
-      target.style.boxShadow = '0 4px 12px rgba(52, 199, 89, 0.3), 0 2px 6px rgba(52, 199, 89, 0.2)';
-      target.style.background = 'linear-gradient(135deg, #2FB344 0%, #1E7E34 100%)';
-    } else {
-      target.style.boxShadow = '0 4px 12px rgba(0, 122, 255, 0.3), 0 2px 6px rgba(0, 122, 255, 0.2)';
-      target.style.background = 'linear-gradient(135deg, #0056CC 0%, #003D99 100%)';
+      return `${baseClasses} cursor-pointer bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 dark:from-green-400 dark:to-green-500 dark:hover:from-green-500 dark:hover:to-green-600 shadow-lg hover:shadow-xl shadow-green-500/25 hover:shadow-green-500/30 dark:shadow-green-400/30 dark:hover:shadow-green-400/40`;
     }
-  };
 
-  const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isDisabled) return;
-    
-    const target = e.currentTarget;
-    target.style.transform = 'translateY(0) scale(1)';
-    
-    if (variant === 'success') {
-      target.style.boxShadow = '0 2px 8px rgba(52, 199, 89, 0.25), 0 1px 4px rgba(52, 199, 89, 0.15)';
-      target.style.background = 'linear-gradient(135deg, #34C759 0%, #28A745 100%)';
-    } else {
-      target.style.boxShadow = '0 2px 8px rgba(0, 122, 255, 0.25), 0 1px 4px rgba(0, 122, 255, 0.15)';
-      target.style.background = 'linear-gradient(135deg, #007AFF 0%, #0051D5 100%)';
-    }
+    return `${baseClasses} cursor-pointer bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-400 dark:to-blue-500 dark:hover:from-blue-500 dark:hover:to-blue-600 shadow-lg hover:shadow-xl shadow-blue-500/25 hover:shadow-blue-500/30 dark:shadow-blue-400/30 dark:hover:shadow-blue-400/40`;
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (isDisabled) return;
     
-    const target = e.currentTarget;
-    target.style.transform = 'translateY(1px) scale(0.98)';
-    
-    if (variant === 'success') {
-      target.style.boxShadow = '0 1px 4px rgba(52, 199, 89, 0.3), 0 1px 2px rgba(52, 199, 89, 0.15)';
-    } else {
-      target.style.boxShadow = '0 1px 4px rgba(0, 122, 255, 0.3), 0 1px 2px rgba(0, 122, 255, 0.15)';
-    }
-    
     // 触觉反馈
     if (navigator.vibrate) {
       navigator.vibrate(6);
     }
-  };
-
-  const handleMouseUp = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isDisabled) return;
-    handleMouseEnter(e);
   };
 
   const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
     if (isDisabled) return;
     
-    const target = e.currentTarget;
-    target.style.transform = 'translateY(1px) scale(0.98)';
-    
-    if (variant === 'success') {
-      target.style.boxShadow = '0 1px 3px rgba(52, 199, 89, 0.2), 0 1px 2px rgba(52, 199, 89, 0.1)';
-    } else {
-      target.style.boxShadow = '0 1px 3px rgba(0, 122, 255, 0.2), 0 1px 2px rgba(0, 122, 255, 0.1)';
-    }
-    
     // 触觉反馈
     if (navigator.vibrate) {
       navigator.vibrate(6);
     }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
-    if (isDisabled) return;
-    handleMouseEnter(e as any);
   };
 
   return (
@@ -154,49 +61,20 @@ export const SubmitButton = memo<SubmitButtonProps>(({
       type={type}
       disabled={isDisabled}
       onClick={onClick}
-      className={className}
-      style={getButtonStyles()}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      className={`${getButtonClasses()} ${className} hover:-translate-y-0.5 hover:scale-[1.005] active:translate-y-0.5 active:scale-[0.98]`}
       onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
       onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
       aria-disabled={isDisabled}
     >
       {/* Apple风格光效背景 */}
       {!isDisabled && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.2) 100%)',
-          borderRadius: '12px',
-          opacity: 0,
-          transition: 'opacity 300ms ease-in-out'
-        }} 
-        onMouseEnter={(e) => {
-          e.currentTarget.style.opacity = '1';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.opacity = '0';
-        }}
-        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-white/10 to-white/20 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300" />
       )}
       
       {/* 按钮内容 */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        textAlign: 'center', 
-        justifyContent: 'center',
-        position: 'relative',
-        zIndex: 1
-      }}>
+      <div className="flex items-center text-center justify-center relative z-10">
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="flex items-center gap-2">
             <LoadingSpinner size="sm" color="white" />
             <span>{children}</span>
           </div>

@@ -116,7 +116,7 @@ export function UnifiedFAB({ onCreatePost, onCreateQuest }: UnifiedFABProps) {
                 
                 {/* Label */}
                 <motion.div
-                  className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap"
+                  className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}

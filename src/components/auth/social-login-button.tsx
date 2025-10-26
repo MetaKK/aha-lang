@@ -36,54 +36,29 @@ export const SocialLoginButton = memo<SocialLoginButtonProps>(({
     onClick?.();
   };
 
-  const buttonStyles = {
-    userSelect: 'none' as const,
-    transition: 'all 120ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    position: 'relative' as const,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    whiteSpace: 'nowrap' as const,
-    height: '44px',
-    borderRadius: '12px',
-    color: 'var(--c-texPri)',
-    fill: 'var(--c-texPri)',
-    background: isPressed 
-      ? 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' 
-      : isHovered 
-        ? 'linear-gradient(135deg, #f1f3f4 0%, #e5e7eb 100%)' 
-        : 'linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)',
-    fontSize: '16px',
-    lineHeight: 1,
-    paddingInline: '16px',
-    fontWeight: 600,
-    border: `1px solid ${isPressed ? '#cbd5e1' : isHovered ? '#d1d5db' : '#e2e8f0'}`,
-    width: '100%',
-    boxShadow: isPressed 
-      ? '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04)' 
-      : isHovered 
-        ? '0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06)' 
-        : '0 1px 2px rgba(0, 0, 0, 0.06)',
-    marginTop: '12px',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
-    overflow: 'hidden',
-    transform: isPressed 
-      ? 'translateY(1px) scale(0.98)' 
-      : isHovered 
-        ? 'translateY(-1px) scale(1.005)' 
-        : 'translateY(0) scale(1)',
-    willChange: 'transform, box-shadow, background',
-    opacity: disabled ? 0.6 : 1,
+  const getButtonClasses = () => {
+    const baseClasses = "select-none transition-all duration-120 cursor-pointer relative inline-flex items-center justify-center whitespace-nowrap h-11 rounded-xl text-gray-900 dark:text-gray-100 fill-current text-base leading-none px-4 font-semibold w-full mt-3 backdrop-blur-sm overflow-hidden";
+    
+    if (disabled) {
+      return `${baseClasses} cursor-not-allowed opacity-60 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm`;
+    }
+
+    if (isPressed) {
+      return `${baseClasses} bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm transform translate-y-0.5 scale-[0.98]`;
+    }
+
+    if (isHovered) {
+      return `${baseClasses} bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-md hover:shadow-lg transform -translate-y-0.5 scale-[1.005]`;
+    }
+
+    return `${baseClasses} bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md`;
   };
 
   return (
     <div 
       role="button" 
       tabIndex={disabled ? -1 : 0}
-      className={className}
-      style={buttonStyles}
+      className={`${getButtonClasses()} ${className}`}
       onClick={handleClick}
       onMouseEnter={() => !disabled && setIsHovered(true)}
       onMouseLeave={() => !disabled && setIsHovered(false)}
@@ -98,33 +73,13 @@ export const SocialLoginButton = memo<SocialLoginButtonProps>(({
       aria-disabled={disabled}
     >
       {/* 弹性光效背景 */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'linear-gradient(135deg, rgba(0, 122, 255, 0.08) 0%, rgba(0, 122, 255, 0.04) 50%, rgba(0, 122, 255, 0.06) 100%)',
-        borderRadius: '12px',
-        opacity: isHovered && !disabled ? 1 : 0,
-        transition: 'opacity 120ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        pointerEvents: 'none'
-      }} />
+      <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/8 via-blue-500/4 to-blue-500/6 dark:from-blue-400/12 dark:via-blue-400/6 dark:to-blue-400/8 rounded-xl transition-opacity duration-120 pointer-events-none ${
+        isHovered && !disabled ? 'opacity-100' : 'opacity-0'
+      }`} />
       
       {/* 按压涟漪效果 */}
       {isPressed && !disabled && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: '0px',
-          height: '0px',
-          background: 'rgba(0, 0, 0, 0.1)',
-          borderRadius: '50%',
-          transform: 'translate(-50%, -50%)',
-          animation: 'ripple 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          pointerEvents: 'none'
-        }} />
+        <div className="absolute top-1/2 left-1/2 w-0 h-0 bg-black/10 dark:bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 animate-[ripple_200ms_cubic-bezier(0.25,0.46,0.45,0.94)] pointer-events-none" />
       )}
       
       {children}
