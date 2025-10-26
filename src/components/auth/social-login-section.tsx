@@ -54,21 +54,6 @@ export const SocialLoginSection = memo<SocialLoginSectionProps>(({
         </div>
       </SocialLoginButton>
 
-      {/* 密钥登录 */}
-      <SocialLoginButton disabled={disabled}>
-        <div style={{ display: 'flex', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-          <svg 
-            aria-hidden="true" 
-            role="graphics-symbol" 
-            viewBox="3.68 2.37 15.23 17.3" 
-            style={{ width: '16px', height: '16px', display: 'block', fill: 'inherit', flexShrink: 0, position: 'absolute', insetInlineStart: '10px' }}
-          >
-            <path d="M10 2.375c-1.137 0-2.054.47-2.674 1.242-.608.757-.9 1.765-.9 2.824s.292 2.066.9 2.824c.62.772 1.537 1.241 2.674 1.241s2.055-.469 2.675-1.241c.608-.758.9-1.766.9-2.824 0-1.059-.292-2.067-.9-2.824-.62-.773-1.538-1.242-2.675-1.242m0 9.255c-2.7 0-5.101 1.315-6.12 3.305-.361.706-.199 1.421.23 1.923.412.48 1.06.767 1.74.767h7.88v-1.79a3.96 3.96 0 0 1-1.439-3.876 8 8 0 0 0-2.291-.33m8.906 1.09a2.72 2.72 0 0 1-1.51 2.436v1.34l-.906 1.057.906 1.057-1.209 1.058-1.208-1.058v-3.454a2.719 2.719 0 1 1 3.927-2.436m-2.02-.604a.698.698 0 1 0-1.396 0 .698.698 0 0 0 1.395 0"></path>
-          </svg>
-          <div style={{ fontSize: '17px', lineHeight: '22px', fontWeight: 500 }}>用密钥登录</div>
-        </div>
-      </SocialLoginButton>
-
       {/* SSO 登录 */}
       <SocialLoginButton disabled={disabled}>
         <div style={{ display: 'flex', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
