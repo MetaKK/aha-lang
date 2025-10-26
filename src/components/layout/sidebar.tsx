@@ -242,18 +242,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               duration: 0.35,
               ease: [0.4, 0, 0.2, 1]
             }}
-            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden"
+            className="fixed top-0 left-0 w-80 max-w-[85vw] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl z-50 flex flex-col"
             style={{
+              // 安全区域适配 - 支持所有设备
+              height: '100dvh', // 动态视口高度，自动适配移动端（fallback: 100vh）
+              paddingTop: 'env(safe-area-inset-top, 0px)',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
               // Apple风格的性能优化
               willChange: 'transform',
               backfaceVisibility: 'hidden',
               WebkitBackdropFilter: 'blur(20px)',
               backdropFilter: 'blur(20px)',
-            }}
+            } as React.CSSProperties}
           >
 
             {/* 用户信息 - Apple风格 */}
-            <div className="p-6">
+            <div className="p-6 flex-shrink-0">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg">
                   {avatarUrl ? (
@@ -288,7 +292,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
 
             {/* 菜单项 */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto min-h-0">
               <div className="py-2">
                 {menuItems.map((item) => (
                   <SidebarItem key={item.id} item={item} />
@@ -297,7 +301,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
 
             {/* 底部推广卡片 - 一比一复刻X设计 */}
-            <div className="px-4">
+            <div className="px-4 pb-4 flex-shrink-0">
               <motion.div
                 className="bg-gradient-to-br from-gray-50/95 to-gray-100/95 dark:from-gray-800/95 dark:to-gray-900/95 rounded-2xl p-5 shadow-xl border border-gray-200/20 dark:border-gray-700/20 backdrop-blur-md relative overflow-hidden"
                 whileHover={{ scale: 1.02, y: -2 }}
