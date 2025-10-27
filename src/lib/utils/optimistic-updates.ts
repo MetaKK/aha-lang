@@ -137,10 +137,7 @@ export function optimisticUpdateCommentInteraction(
 
     return {
       ...oldData,
-      post: {
-        ...oldData.post,
-        replies: oldData.post.replies?.map(updateComment) || [],
-      },
+      replies: oldData.replies?.map(updateComment) || [],
     };
   });
 }
@@ -207,10 +204,7 @@ export function optimisticAddComment(
 
       return {
         ...oldData,
-        post: {
-          ...oldData.post,
-          replies: oldData.post.replies?.map(addReplyToComment) || [],
-        },
+        replies: oldData.replies?.map(addReplyToComment) || [],
       };
     } else {
       // 添加为顶级评论
@@ -218,8 +212,13 @@ export function optimisticAddComment(
         ...oldData,
         post: {
           ...oldData.post,
-          replies: [newComment, ...(oldData.post.replies || [])],
+          stats: {
+            ...oldData.post.stats,
+            replies: oldData.post.stats.replies + 1,
+          },
+          replyCount: (oldData.post.replyCount || 0) + 1,
         },
+        replies: [newComment, ...(oldData.replies || [])],
       };
     }
   });

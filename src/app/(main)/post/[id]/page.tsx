@@ -63,10 +63,8 @@ export default function PostPage({ params }: PostPageProps) {
         rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
       }
     },
-    onSettled: () => {
-      // 无论成功失败都重新获取数据确保一致性
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
-    },
+    // 移除onSettled中的invalidateQueries，保持乐观更新的状态
+    // 乐观更新已经正确反映了UI状态，不需要重新获取
   });
 
   // Bookmark mutation with optimistic updates
@@ -88,9 +86,6 @@ export default function PostPage({ params }: PostPageProps) {
       if (context?.previousData) {
         rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
       }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
     },
   });
 
@@ -114,9 +109,6 @@ export default function PostPage({ params }: PostPageProps) {
         rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
-    },
   });
 
   // Comment mutation with optimistic updates
@@ -128,22 +120,29 @@ export default function PostPage({ params }: PostPageProps) {
       await queryClient.cancelQueries({ queryKey: ['post', id] });
       const previousData = queryClient.getQueryData(['post', id]);
       
+      // 获取当前用户信息用于乐观更新
+      const currentUser = profile ? {
+        id: user?.id || 'currentUser',
+        handle: profile.username,
+        displayName: profile.display_name || profile.username,
+        avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`,
+      } : undefined;
+      
       // 乐观添加评论
-      optimisticAddComment(queryClient, id, { content }, parentId);
+      optimisticAddComment(queryClient, id, { content, author: currentUser }, parentId);
       
       return { previousData };
+    },
+    onSuccess: () => {
+      // 清空输入框
+      setCommentText('');
     },
     onError: (err, variables, context) => {
       if (context?.previousData) {
         rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
       }
     },
-    onSuccess: () => {
-      // 成功时不需要额外操作，CommentItem已经处理了本地状态
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
-    },
+    // 评论成功后不重新获取，使用乐观更新的状态
   });
 
   const handleLike = useCallback(() => {
@@ -199,9 +198,6 @@ export default function PostPage({ params }: PostPageProps) {
       if (context?.previousData) {
         rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
       }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
     },
   });
 

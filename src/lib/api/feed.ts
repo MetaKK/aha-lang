@@ -392,8 +392,8 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
       }
     }
 
-    // Fetch replies (comments) with nested structure
-    const { data: repliesData, error: repliesError } = await (supabase as any)
+    // 批量获取所有评论和回复（包括嵌套的）
+    const { data: allRepliesData, error: allRepliesError } = await (supabase as any)
       .from('interactions')
       .select(`
         *,
@@ -407,104 +407,93 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
       `)
       .eq('target_id', postId)
       .eq('target_type', 'card')
-      .eq('type', 'comment')
-      .is('parent_id', null)
+      .in('type', ['comment', 'reply'])
       .order('created_at', { ascending: true });
 
-    if (repliesError) {
-      console.error('[fetchPostThread] Replies fetch error:', repliesError);
+    if (allRepliesError) {
+      console.error('[fetchPostThread] All replies fetch error:', allRepliesError);
     }
 
-    // Helper function to fetch comment likes count and viewer state
-    const getCommentLikesInfo = async (commentId: string) => {
-      // Get total likes count
-      const { count: likesCount } = await (supabase as any)
+    // 收集所有评论ID用于批量查询点赞信息
+    const allCommentIds = (allRepliesData || []).map((r: any) => r.id);
+    
+    // 批量获取所有评论的点赞数
+    const likesCountMap = new Map<string, number>();
+    if (allCommentIds.length > 0) {
+      const { data: likesData } = await (supabase as any)
         .from('interactions')
-        .select('*', { count: 'exact', head: true })
-        .eq('target_id', commentId)
+        .select('target_id')
         .eq('target_type', 'comment')
-        .eq('type', 'like');
+        .eq('type', 'like')
+        .in('target_id', allCommentIds);
+      
+      // 统计每个评论的点赞数
+      (likesData || []).forEach((like: any) => {
+        likesCountMap.set(like.target_id, (likesCountMap.get(like.target_id) || 0) + 1);
+      });
+    }
 
-      // Check if current user liked this comment
-      let userLiked = false;
-      if (user) {
-        const { data: userLike } = await (supabase as any)
-          .from('interactions')
-          .select('id')
-          .eq('target_id', commentId)
-          .eq('target_type', 'comment')
-          .eq('type', 'like')
-          .eq('user_id', user.id)
-          .single();
-        
-        userLiked = !!userLike;
-      }
-
-      return { likesCount: likesCount || 0, userLiked };
-    };
-
-    // Helper function to recursively fetch nested replies
-    const fetchNestedReplies = async (parentId: string, depth: number = 0, maxDepth: number = 3): Promise<ThreadPost[]> => {
-      if (depth >= maxDepth) return [];
-
-      const { data: nestedReplies } = await (supabase as any)
+    // 批量获取当前用户对所有评论的点赞状态
+    const userLikesSet = new Set<string>();
+    if (user && allCommentIds.length > 0) {
+      const { data: userLikesData } = await (supabase as any)
         .from('interactions')
-        .select(`
-          *,
-          author:profiles!interactions_user_id_fkey (
-            id,
-            username,
-            display_name,
-            avatar_url,
-            level
-          )
-        `)
-        .eq('parent_id', parentId)
-        .eq('type', 'reply')
-        .order('created_at', { ascending: true });
+        .select('target_id')
+        .eq('target_type', 'comment')
+        .eq('type', 'like')
+        .eq('user_id', user.id)
+        .in('target_id', allCommentIds);
+      
+      (userLikesData || []).forEach((like: any) => {
+        userLikesSet.add(like.target_id);
+      });
+    }
 
-      if (!nestedReplies || nestedReplies.length === 0) return [];
-
-      const transformedReplies: ThreadPost[] = [];
-      for (const reply of nestedReplies) {
-        const likesInfo = await getCommentLikesInfo(reply.id);
-        const childReplies = await fetchNestedReplies(reply.id, depth + 1, maxDepth);
-        
-        transformedReplies.push({
-          id: reply.id,
-          type: 'text',
-          content: reply.content || '',
-          author: {
-            id: reply.author.id,
-            handle: reply.author.username,
-            displayName: reply.author.display_name || reply.author.username,
-            avatar: reply.author.avatar_url,
-            verified: reply.author.level >= 10,
-          },
-          stats: {
-            replies: childReplies.length,
-            reposts: 0,
-            likes: likesInfo.likesCount,
-            bookmarks: 0,
-            views: 0,
-          },
-          viewer: {
-            liked: likesInfo.userLiked,
-            reposted: false,
-            bookmarked: false,
-          },
-          createdAt: reply.created_at,
-          reply: {
-            root: { uri: postId, cid: postId },
-            parent: { uri: parentId, cid: parentId },
-          },
-          replyCount: childReplies.length,
-          replies: childReplies.length > 0 ? childReplies : undefined,
+    // 构建评论树结构
+    const buildCommentTree = (comments: any[], parentId: string | null = null): ThreadPost[] => {
+      return comments
+        .filter(c => (parentId ? c.parent_id === parentId : !c.parent_id))
+        .map(comment => {
+          const childReplies = buildCommentTree(comments, comment.id);
+          const likesCount = likesCountMap.get(comment.id) || 0;
+          const userLiked = userLikesSet.has(comment.id);
+          
+          return {
+            id: comment.id,
+            type: 'text',
+            content: comment.content || '',
+            author: {
+              id: comment.author.id,
+              handle: comment.author.username,
+              displayName: comment.author.display_name || comment.author.username,
+              avatar: comment.author.avatar_url,
+              verified: comment.author.level >= 10,
+            },
+            stats: {
+              replies: childReplies.length,
+              reposts: 0,
+              likes: likesCount,
+              bookmarks: 0,
+              views: 0,
+            },
+            viewer: {
+              liked: userLiked,
+              reposted: false,
+              bookmarked: false,
+            },
+            createdAt: comment.created_at,
+            reply: {
+              root: { uri: postId, cid: postId },
+              parent: { uri: parentId || postId, cid: parentId || postId },
+            },
+            replyCount: childReplies.length,
+            replies: childReplies.length > 0 ? childReplies : undefined,
+          };
         });
-      }
-
-      return transformedReplies;
     };
+
+    // 构建评论树
+    const replies = buildCommentTree(allRepliesData || []);
 
     // Transform post data to FeedCard format
     const mainPost: ThreadPost = {
@@ -519,7 +508,7 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
         verified: postData.author.level >= 10,
       },
       stats: {
-        replies: postData.comments_count || 0,
+        replies: replies.length,
         reposts: postData.shares_count || 0,
         likes: postData.likes_count || 0,
         bookmarks: 0,
@@ -529,48 +518,8 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
       createdAt: postData.created_at,
       media: postData.content?.media,
       novel: postData.metadata?.novel,
-      replyCount: postData.comments_count || 0,
+      replyCount: replies.length,
     };
-
-    // Transform replies data with nested structure and likes info
-    const replies: ThreadPost[] = [];
-    for (const reply of (repliesData || [])) {
-      const likesInfo = await getCommentLikesInfo(reply.id);
-      const nestedReplies = await fetchNestedReplies(reply.id);
-      
-      replies.push({
-        id: reply.id,
-        type: 'text',
-        content: reply.content || '',
-        author: {
-          id: reply.author.id,
-          handle: reply.author.username,
-          displayName: reply.author.display_name || reply.author.username,
-          avatar: reply.author.avatar_url,
-          verified: reply.author.level >= 10,
-        },
-        stats: {
-          replies: nestedReplies.length,
-          reposts: 0,
-          likes: likesInfo.likesCount,
-          bookmarks: 0,
-          views: 0,
-        },
-        viewer: {
-          liked: likesInfo.userLiked,
-          reposted: false,
-          bookmarked: false,
-        },
-        createdAt: reply.created_at,
-        reply: {
-          root: { uri: postId, cid: postId },
-          parent: { uri: postId, cid: postId },
-        },
-        replyCount: nestedReplies.length,
-        replies: nestedReplies.length > 0 ? nestedReplies : undefined,
-      });
-    }
-
 
     return {
       post: mainPost,
@@ -652,13 +601,13 @@ export async function createComment(
     // Update comment count on the post (only for top-level comments)
     if (!parentId) {
       // 先获取当前评论数，然后更新
-      const { data: currentCard } = await (supabase as any)
+      const { data: currentCard, error: cardError } = await (supabase as any)
         .from('feed_cards')
         .select('comments_count')
         .eq('id', postId)
-        .single();
+        .maybeSingle();
 
-      if (currentCard) {
+      if (currentCard && !cardError) {
         const { error: updateError } = await (supabase as any)
           .from('feed_cards')
           .update({
@@ -669,6 +618,8 @@ export async function createComment(
         if (updateError) {
           console.error('[createComment] Update count error:', updateError);
         }
+      } else {
+        console.error('[createComment] Card not found or error:', cardError);
       }
     }
 
@@ -722,7 +673,7 @@ export async function createReply(
       .from('interactions')
       .select('target_id')
       .eq('id', commentId)
-      .single();
+      .maybeSingle();
 
     if (parentError || !parentComment) {
       throw new Error('Parent comment not found');
@@ -758,8 +709,7 @@ export async function interactWithComment(
   commentId: string,
   action: 'like' | 'unlike'
 ): Promise<void> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 200));
+  // 移除人工延迟，提升响应速度
 
   if (MOCK_DATA_ENABLED) {
     const mockUserId = 'currentUser';
