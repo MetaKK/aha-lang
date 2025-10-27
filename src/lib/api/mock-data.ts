@@ -13,6 +13,37 @@ export const createMockData = (): FeedCard[] => {
   const baseTime = Date.now();
 
   return [
+    // Quest Card - The Visitors' Zoo
+    {
+      id: 'quest-novel-001',
+      type: 'novel',
+      author: {
+        id: 'author-quest',
+        handle: 'ahalearn',
+        displayName: 'Aha Learning',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ahalearn',
+        verified: true,
+        badges: ['verified', 'organization'],
+      },
+      content: '🚀 New Science Fiction Quest Available! Travel through time and discover what happens when humans accidentally change history. Are you ready for this mind-bending adventure?',
+      createdAt: new Date(baseTime - 1000 * 60 * 5).toISOString(),
+      stats: { replies: 42, reposts: 128, likes: 567, bookmarks: 234, views: 3400 },
+      viewer: { liked: false, reposted: false, bookmarked: false },
+      novel: {
+        id: 'novel-001',
+        title: 'The Visitors\' Zoo',
+        excerpt: 'Emma and I were on our honeymoon in space. We visited the Moon and flew far away from Earth. But what we discovered would change everything...',
+        coverImage: 'https://picsum.photos/seed/novel-zoo-dinosaur/600/900',
+        difficulty: 3,
+        totalChapters: 1,
+        currentChapter: 1,
+        tags: ['Science Fiction', 'Time Travel', 'Adventure'],
+        language: 'English',
+        estimatedTime: '8 min',
+        questType: 'comprehension',
+      },
+    },
+
     // Single Image Card
     {
       id: 'single-image-1',

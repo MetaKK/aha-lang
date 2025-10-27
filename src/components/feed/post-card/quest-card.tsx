@@ -96,11 +96,7 @@ const QuestCard = memo(function QuestCard({
           </div>
 
           {/* Novel Card */}
-          <Link 
-            href={`/learn/novel/${novel.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="block mt-3"
-          >
+          <div className="mt-3">
             <motion.div
               whileHover={{ scale: 1.001, y: -1 }}
               transition={{ type: 'spring', mass: 0.8, stiffness: 300, damping: 30 }}
@@ -186,25 +182,30 @@ const QuestCard = memo(function QuestCard({
 
             {/* Start Learning Button */}
             <div className="px-3 pb-3">
-              <motion.div
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', mass: 1, stiffness: 250, damping: 24 }}
-                className={cn(
-                  'w-full py-3 px-4 rounded-[12px]',
-                  'bg-primary',
-                  'text-white font-semibold text-[15px] text-center',
-                  'flex items-center justify-center gap-2',
-                  'shadow-sm hover:shadow-md',
-                  'transition-shadow duration-200'
-                )}
+              <Link 
+                href={`/novel/${novel.id}`}
+                onClick={(e) => e.stopPropagation()}
               >
-                <SparklesIcon className="w-4 h-4" />
-                <span>Start Learning</span>
-              </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', mass: 1, stiffness: 250, damping: 24 }}
+                  className={cn(
+                    'w-full py-3 px-4 rounded-[12px]',
+                    'bg-primary',
+                    'text-white font-semibold text-[15px] text-center',
+                    'flex items-center justify-center gap-2',
+                    'shadow-sm hover:shadow-md',
+                    'transition-shadow duration-200'
+                  )}
+                >
+                  <SparklesIcon className="w-4 h-4" />
+                  <span>Start Reading</span>
+                </motion.div>
+              </Link>
             </div>
           </motion.div>
-          </Link>
+          </div>
 
           {/* Actions */}
           <div className="mt-3">
