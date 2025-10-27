@@ -40,12 +40,13 @@ export const CommentItem = memo<CommentItemProps>(({
   const [showReplies, setShowReplies] = useState(true);
 
   const handleReply = useCallback(() => {
-    if (replyText.trim() && onReply) {
+    if (replyText.trim() && onReply && !isReplying) {
       onReply(comment.id, replyText.trim());
+      // 立即清空本地状态，防止重复提交
       setReplyText('');
       setShowReplyInput(false);
     }
-  }, [comment.id, replyText, onReply]);
+  }, [comment.id, replyText, onReply, isReplying]);
 
   const handleLike = useCallback(() => {
     if (onLike) {

@@ -29,6 +29,9 @@ export function optimisticUpdatePostInteraction(
       post: {
         ...oldData.post,
         viewer: {
+          liked: false,
+          reposted: false,
+          bookmarked: false,
           ...oldData.post.viewer,
           ...(isLikeAction && { liked: isAdding }),
           ...(isBookmarkAction && { bookmarked: isAdding }),

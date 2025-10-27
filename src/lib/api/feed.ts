@@ -651,15 +651,24 @@ export async function createComment(
 
     // Update comment count on the post (only for top-level comments)
     if (!parentId) {
-      const { error: updateError } = await (supabase as any)
+      // 先获取当前评论数，然后更新
+      const { data: currentCard } = await (supabase as any)
         .from('feed_cards')
-        .update({
-          comments_count: (supabase as any).raw('comments_count + 1')
-        })
-        .eq('id', postId);
+        .select('comments_count')
+        .eq('id', postId)
+        .single();
 
-      if (updateError) {
-        console.error('[createComment] Update count error:', updateError);
+      if (currentCard) {
+        const { error: updateError } = await (supabase as any)
+          .from('feed_cards')
+          .update({
+            comments_count: currentCard.comments_count + 1
+          })
+          .eq('id', postId);
+
+        if (updateError) {
+          console.error('[createComment] Update count error:', updateError);
+        }
       }
     }
 

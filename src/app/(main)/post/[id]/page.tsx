@@ -139,7 +139,7 @@ export default function PostPage({ params }: PostPageProps) {
       }
     },
     onSuccess: () => {
-      setCommentText('');
+      // 成功时不需要额外操作，CommentItem已经处理了本地状态
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
