@@ -590,8 +590,8 @@ export async function createComment(
   content: string,
   parentId?: string
 ): Promise<void> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 300));
+  // 移除人工网络延迟，提升响应速度
+  // await new Promise(resolve => setTimeout(resolve, 300));
 
   if (MOCK_DATA_ENABLED) {
     
@@ -831,8 +831,8 @@ export async function interactWithPost(
   postId: string,
   action: 'like' | 'unlike' | 'repost' | 'unrepost' | 'bookmark' | 'unbookmark'
 ): Promise<void> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 300));
+  // 移除人工网络延迟，提升响应速度
+  // await new Promise(resolve => setTimeout(resolve, 300));
 
   if (MOCK_DATA_ENABLED) {
     

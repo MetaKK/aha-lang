@@ -10,6 +10,12 @@ import { HeartIcon as HeartSolid, BookmarkIcon as BookmarkSolid } from '@heroico
 import { fetchPostThread, interactWithPost, createComment, interactWithComment } from '@/lib/api/feed';
 import { PostCard } from '@/components/feed/post-card';
 import { CommentList } from '@/components/feed/comment';
+import { 
+  optimisticUpdatePostInteraction, 
+  optimisticUpdateCommentInteraction, 
+  optimisticAddComment,
+  rollbackOptimisticUpdate 
+} from '@/lib/utils/optimistic-updates';
 import type { FeedCard, Comment, ThreadPost } from '@/types/feed';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,46 +38,110 @@ export default function PostPage({ params }: PostPageProps) {
     queryFn: () => fetchPostThread(id),
   });
 
-  // Like mutation
+  // Like mutation with optimistic updates
   const likeMutation = useMutation({
     mutationFn: async () => {
       const action = data?.post.viewer?.liked ? 'unlike' : 'like';
       await interactWithPost(id, action);
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      // 取消正在进行的查询，避免冲突
+      await queryClient.cancelQueries({ queryKey: ['post', id] });
+      
+      // 保存当前数据用于回滚
+      const previousData = queryClient.getQueryData(['post', id]);
+      
+      // 乐观更新UI
+      const action = data?.post.viewer?.liked ? 'unlike' : 'like';
+      optimisticUpdatePostInteraction(queryClient, id, action);
+      
+      return { previousData };
+    },
+    onError: (err, variables, context) => {
+      // 发生错误时回滚
+      if (context?.previousData) {
+        rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
+      }
+    },
+    onSettled: () => {
+      // 无论成功失败都重新获取数据确保一致性
       queryClient.invalidateQueries({ queryKey: ['post', id] });
     },
   });
 
-  // Bookmark mutation
+  // Bookmark mutation with optimistic updates
   const bookmarkMutation = useMutation({
     mutationFn: async () => {
       const action = data?.post.viewer?.bookmarked ? 'unbookmark' : 'bookmark';
       await interactWithPost(id, action);
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['post', id] });
+      const previousData = queryClient.getQueryData(['post', id]);
+      
+      const action = data?.post.viewer?.bookmarked ? 'unbookmark' : 'bookmark';
+      optimisticUpdatePostInteraction(queryClient, id, action);
+      
+      return { previousData };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousData) {
+        rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
     },
   });
 
-  // Repost mutation
+  // Repost mutation with optimistic updates
   const repostMutation = useMutation({
     mutationFn: async () => {
       const action = data?.post.viewer?.reposted ? 'unrepost' : 'repost';
       await interactWithPost(id, action);
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['post', id] });
+      const previousData = queryClient.getQueryData(['post', id]);
+      
+      const action = data?.post.viewer?.reposted ? 'unrepost' : 'repost';
+      optimisticUpdatePostInteraction(queryClient, id, action);
+      
+      return { previousData };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousData) {
+        rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
     },
   });
 
-  // Comment mutation
+  // Comment mutation with optimistic updates
   const commentMutation = useMutation({
     mutationFn: async ({ content, parentId }: { content: string; parentId?: string }) => {
       await createComment(id, content, parentId);
     },
+    onMutate: async ({ content, parentId }) => {
+      await queryClient.cancelQueries({ queryKey: ['post', id] });
+      const previousData = queryClient.getQueryData(['post', id]);
+      
+      // 乐观添加评论
+      optimisticAddComment(queryClient, id, { content }, parentId);
+      
+      return { previousData };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousData) {
+        rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
+      }
+    },
     onSuccess: () => {
       setCommentText('');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
     },
   });
@@ -110,13 +180,27 @@ export default function PostPage({ params }: PostPageProps) {
     }
   }, [user, router, commentText, commentMutation]);
 
-  // Comment like mutation
+  // Comment like mutation with optimistic updates
   const commentLikeMutation = useMutation({
     mutationFn: async ({ commentId, isLiked }: { commentId: string; isLiked: boolean }) => {
       const action = isLiked ? 'unlike' : 'like';
       await interactWithComment(commentId, action);
     },
-    onSuccess: () => {
+    onMutate: async ({ commentId, isLiked }) => {
+      await queryClient.cancelQueries({ queryKey: ['post', id] });
+      const previousData = queryClient.getQueryData(['post', id]);
+      
+      const action = isLiked ? 'unlike' : 'like';
+      optimisticUpdateCommentInteraction(queryClient, id, commentId, action);
+      
+      return { previousData };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousData) {
+        rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
     },
   });

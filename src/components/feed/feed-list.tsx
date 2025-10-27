@@ -44,8 +44,8 @@ const FeedList = memo(function FeedList({
     },
     getNextPageParam: (lastPage) => lastPage.cursor,
     initialPageParam: undefined as string | undefined,
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
-    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+    staleTime: 10 * 60 * 1000, // 10分钟缓存，减少重复请求
+    gcTime: 30 * 60 * 1000, // 30分钟垃圾回收
   });
 
   // Memoized flattening to prevent unnecessary re-renders
