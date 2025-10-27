@@ -155,7 +155,7 @@ export function optimisticAddComment(
     if (!oldData) return oldData;
 
     const newComment: ThreadPost = {
-      id: `temp-${Date.now()}`, // 临时ID
+      id: `optimistic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // 乐观更新的临时ID
       type: 'text',
       author: comment.author || {
         id: 'current-user',

@@ -576,21 +576,20 @@ export async function createComment(
       throw new Error('User not authenticated');
     }
 
-    // Determine if this is a reply or a top-level comment
+    // 所有评论和回复都以帖子为target，通过parent_id区分层级
+    // 这样查询时只需要 target_id = postId 就能获取所有相关评论
     const interactionType = parentId ? 'reply' : 'comment';
-    const targetId = parentId || postId;
-    const targetType = parentId ? 'comment' : 'card';
-
+    
     // Insert comment/reply interaction
     const { error } = await (supabase as any)
       .from('interactions')
       .insert({
         user_id: user.id,
-        target_id: targetId,
-        target_type: targetType,
+        target_id: postId, // ✅ 统一使用 postId 作为 target_id
+        target_type: 'card', // ✅ 统一使用 'card' 作为 target_type
         type: interactionType,
         content: content,
-        parent_id: parentId || null,
+        parent_id: parentId || null, // 用 parent_id 来维护层级关系
       });
 
     if (error) {

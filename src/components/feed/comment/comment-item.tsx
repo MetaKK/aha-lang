@@ -48,17 +48,11 @@ export const CommentItem = memo<CommentItemProps>(({
     }
   }, [comment.id, replyText, onReply, isReplying]);
 
-  // 检查是否为临时评论（尚未保存到数据库）
-  const isTemporaryComment = comment.id.startsWith('temp-');
-  
   const handleLike = useCallback(() => {
-    // 临时评论不能点赞
-    if (isTemporaryComment) return;
-    
     if (onLike) {
       onLike(comment.id, comment.viewer?.liked || false);
     }
-  }, [comment.id, comment.viewer?.liked, onLike, isTemporaryComment]);
+  }, [comment.id, comment.viewer?.liked, onLike]);
 
   const toggleReplies = useCallback(() => {
     setShowReplies(prev => !prev);
@@ -110,17 +104,8 @@ export const CommentItem = memo<CommentItemProps>(({
             </span>
             <span className="text-[13px] text-gray-400">·</span>
             <time className="text-[13px] text-gray-500 dark:text-gray-400">
-              {isTemporaryComment ? '发送中...' : formatTimeAgo(comment.createdAt)}
+              {formatTimeAgo(comment.createdAt)}
             </time>
-            {isTemporaryComment && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 rounded-full">
-                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                发送中
-              </span>
-            )}
           </div>
 
           {/* 评论内容 */}
@@ -131,7 +116,7 @@ export const CommentItem = memo<CommentItemProps>(({
           {/* 操作按钮 */}
           <div className="flex items-center gap-4">
             {/* 回复按钮 */}
-            {canReply && !isTemporaryComment && (
+            {canReply && (
               <button
                 onClick={() => setShowReplyInput(!showReplyInput)}
                 className="text-[13px] text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
@@ -143,16 +128,12 @@ export const CommentItem = memo<CommentItemProps>(({
             {/* 点赞按钮 */}
             <button
               onClick={handleLike}
-              disabled={isTemporaryComment}
               className={cn(
                 "flex items-center gap-1 text-[13px] transition-colors",
-                isTemporaryComment
-                  ? "text-gray-400 cursor-not-allowed opacity-50"
-                  : comment.viewer?.liked
+                comment.viewer?.liked
                   ? "text-red-500"
                   : "text-gray-500 hover:text-red-500"
               )}
-              title={isTemporaryComment ? "评论发送中..." : ""}
             >
               {comment.viewer?.liked ? (
                 <HeartSolid className="w-4 h-4" />
