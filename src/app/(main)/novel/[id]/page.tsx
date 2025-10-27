@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { XCircleIcon } from '@heroicons/react/24/outline';
-import { EnhancedNovelReader } from '@/components/reader/enhanced-novel-reader';
+import { NovelReader } from '@/components/reader/novel-reader';
 import { getNovelById } from '@/lib/api/novel-mock-data';
 import type { NovelContent } from '@/lib/api/novel-mock-data';
 
@@ -71,7 +71,7 @@ export default function NovelReadPage() {
   const chapter = novel.chapters[0];
 
   return (
-    <EnhancedNovelReader
+    <NovelReader
       novel={novel}
       chapter={chapter}
       onClose={handleClose}
