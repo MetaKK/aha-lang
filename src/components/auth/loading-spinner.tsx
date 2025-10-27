@@ -1,6 +1,7 @@
 'use client';
 
 import { memo } from 'react';
+import { PRESETS } from '@/config/animations';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -31,7 +32,10 @@ export const LoadingSpinner = memo<LoadingSpinnerProps>(({
         border: `2px solid ${color}20`,
         borderTop: `2px solid ${color}`,
         borderRadius: '50%',
-        animation: 'spin 1s linear infinite'
+        animation: 'spin-fast 0.6s linear infinite',
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        transform: 'translateZ(0)'
       }}
       role="status"
       aria-label="加载中"

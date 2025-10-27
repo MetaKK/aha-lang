@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingSpinner } from '@/components/auth/loading-spinner';
+import { ANIMATION_DURATION, SPRING_CONFIG, ANIMATION_DELAY } from '@/config/animations';
 
 interface LoadingOverlayProps {
   isVisible: boolean;
@@ -13,13 +14,14 @@ interface LoadingOverlayProps {
 }
 
 /**
- * 优雅的Loading蒙层组件
+ * 优雅的Loading蒙层组件 - 优化版本
  * 
  * 特性：
  * 1. 非阻塞式设计 - 不阻止用户操作
- * 2. 优雅的动画效果 - 平滑的进入/退出
+ * 2. 快速响应动画 - 基于最佳实践优化
  * 3. 可自定义样式 - 支持不同场景
  * 4. 无障碍支持 - 完整的ARIA标签
+ * 5. 性能优化 - 硬件加速和渲染优化
  */
 export const LoadingOverlay = memo<LoadingOverlayProps>(({
   isVisible,
@@ -36,11 +38,15 @@ export const LoadingOverlay = memo<LoadingOverlayProps>(({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: ANIMATION_DURATION.FAST }}
         className={`fixed inset-0 z-50 flex items-center justify-center ${className}`}
         role="status"
         aria-live="polite"
         aria-label="加载中"
+        style={{
+          willChange: 'transform, opacity',
+          backfaceVisibility: 'hidden',
+        }}
       >
         {/* 背景蒙层 */}
         {showBackdrop && (
@@ -54,11 +60,15 @@ export const LoadingOverlay = memo<LoadingOverlayProps>(({
         
         {/* Loading内容 */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={SPRING_CONFIG.FAST}
           className="relative p-8"
+          style={{
+            willChange: 'transform, opacity',
+            backfaceVisibility: 'hidden',
+          }}
         >
           {/* 加载指示器 */}
           <div className="flex flex-col items-center">
@@ -66,9 +76,9 @@ export const LoadingOverlay = memo<LoadingOverlayProps>(({
             
             {/* 消息文本 */}
             <motion.p
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              transition={{ delay: ANIMATION_DELAY.MICRO }}
               className="mt-4 text-gray-700 dark:text-gray-300 font-medium"
             >
               {message}

@@ -66,35 +66,35 @@
   /* Avatar Tokens */
   --avatar-size: 40px;
   
-  /* Animation Tokens - Spring */
+  /* Animation Tokens - Spring - 优化为更快响应 */
   --spring-mass: 1;
-  --spring-stiffness: 250;
-  --spring-damping: 24;
+  --spring-stiffness: 350;
+  --spring-damping: 20;
 }
 
 @media (prefers-color-scheme: dark) {
   @theme {
-    --color-primary: #0A84FF;
+    --color-primary: #0a84ff;
     --color-primary-foreground: #ffffff;
     
     --color-secondary: #1c1c1e;
-    --color-secondary-foreground: #F2F2F7;
+    --color-secondary-foreground: #f2f2f7;
     
     --color-muted: #2c2c2e;
-    --color-muted-foreground: #8E8E93;
+    --color-muted-foreground: #8e8e93;
     
-    --color-accent: #0A84FF;
+    --color-accent: #0a84ff;
     --color-accent-foreground: #ffffff;
     
-    --color-border: #38383a;
+    --color-border: #eeeeee;
     --color-border-subtle: #f0f4f84d;
-    --color-input: #38383a;
+    --color-input: #eeeeee;
     
     --color-background: #000000;
-    --color-foreground: #F2F2F7;
+    --color-foreground: #f2f2f7;
     
     --color-card: #1c1c1e;
-    --color-card-foreground: #F2F2F7;
+    --color-card-foreground: #f2f2f7;
   }
 }
 
@@ -386,7 +386,7 @@ html {
   }
 }
 
-/* Spring 动画 */
+/* Spring 动画 - 优化为更快更流畅 */
 @keyframes spring-in {
   0% {
     opacity: 0;
@@ -403,7 +403,47 @@ html {
 }
 
 .animate-spring-in {
-  animation: spring-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: spring-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 快速旋转动画 - 优化加载指示器 */
+@keyframes spin-fast {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-fast {
+  animation: spin-fast 0.6s linear infinite;
+}
+
+/* 快速淡入动画 */
+@keyframes fade-in-fast {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 快速脉冲动画 - 优化骨架屏 */
+@keyframes pulse-fast {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-fast {
+  animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Dynamic Starfield Animations */

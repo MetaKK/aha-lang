@@ -44,7 +44,7 @@ export const AuthPrompt = memo<AuthPromptProps>(({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.15 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
         {/* 背景蒙层 */}
@@ -61,7 +61,7 @@ export const AuthPrompt = memo<AuthPromptProps>(({
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
           style={{ minWidth: '280px', maxWidth: '384px' }}
         >
@@ -79,7 +79,7 @@ export const AuthPrompt = memo<AuthPromptProps>(({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+              transition={{ delay: 0.05, type: 'spring', stiffness: 300 }}
               className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
             >
               <UserIcon className="w-8 h-8 text-white" />
@@ -89,7 +89,7 @@ export const AuthPrompt = memo<AuthPromptProps>(({
             <motion.h3
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.1 }}
               className="text-xl font-bold text-gray-900 dark:text-white text-center mb-2"
             >
               {title}
@@ -99,7 +99,7 @@ export const AuthPrompt = memo<AuthPromptProps>(({
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.15 }}
               className="text-gray-600 dark:text-gray-400 text-center mb-6"
             >
               {message}
@@ -109,7 +109,7 @@ export const AuthPrompt = memo<AuthPromptProps>(({
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.2 }}
               className="flex flex-col gap-3"
             >
               <button

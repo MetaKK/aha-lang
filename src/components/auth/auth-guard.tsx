@@ -73,7 +73,7 @@ export function AuthGuard({
           <motion.p 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.1 }}
             className="mt-4 text-gray-600 dark:text-gray-400"
           >
             正在验证身份...
@@ -96,14 +96,14 @@ export function AuthGuard({
           <motion.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           >
             <LoadingSpinner size="lg" />
           </motion.div>
           <motion.p 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.1 }}
             className="mt-4 text-gray-600 dark:text-gray-400"
           >
             正在跳转到登录页面...

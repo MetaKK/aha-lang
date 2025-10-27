@@ -117,7 +117,7 @@ export default function PostPage({ params }: PostPageProps) {
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}
           >
             <ArrowPathIcon className="w-8 h-8 text-blue-600" />
           </motion.div>
@@ -168,7 +168,7 @@ export default function PostPage({ params }: PostPageProps) {
                 className="relative"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.2 }}
               >
                 <PostCard card={ancestor as FeedCard} />
                 {/* Thread Line */}
@@ -183,7 +183,7 @@ export default function PostPage({ params }: PostPageProps) {
           className="bg-white dark:bg-[#1A1A1A] border-b border-subtle"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
         >
           <div className="px-6 py-6">
             {/* Author - X-style header */}
@@ -191,7 +191,7 @@ export default function PostPage({ params }: PostPageProps) {
               className="flex items-center gap-3 mb-4"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
+              transition={{ delay: 0.05, duration: 0.2 }}
             >
               <div className="w-10 h-10 rounded-full overflow-hidden">
                 {'author' in data.post && data.post.author.avatar ? (
@@ -262,7 +262,7 @@ export default function PostPage({ params }: PostPageProps) {
               className="bg-white dark:bg-[#1A1A1A] border-t border-subtle"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.3 }}
+              transition={{ delay: 0.15, duration: 0.2 }}
             >
               <div className="flex items-center justify-around px-2 py-2">
                 <InteractionButton
@@ -309,7 +309,7 @@ export default function PostPage({ params }: PostPageProps) {
             className="bg-white dark:bg-[#1A1A1A] border-b border-subtle p-4"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.3 }}
+            transition={{ delay: 0.2, duration: 0.2 }}
           >
             <div className="flex gap-3">
               <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
@@ -370,7 +370,7 @@ export default function PostPage({ params }: PostPageProps) {
             className="bg-white dark:bg-[#1A1A1A] border-b border-subtle p-6 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.3 }}
+            transition={{ delay: 0.2, duration: 0.2 }}
           >
             <p className="text-[15px] text-gray-600 dark:text-gray-400 mb-3">
               Log in to reply to this post
@@ -391,14 +391,14 @@ export default function PostPage({ params }: PostPageProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.3 }}
+            transition={{ delay: 0.25, duration: 0.2 }}
           >
             {data.replies.map((reply, index) => (
               <motion.div
                 key={'id' in reply ? reply.id : Math.random()}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 + index * 0.05, duration: 0.3 }}
+                transition={{ delay: 0.3 + index * 0.03, duration: 0.2 }}
                 className="border-b bg-white dark:bg-[#1A1A1A] border-subtle"
               >
                 <PostCard card={reply as FeedCard} />
@@ -413,7 +413,7 @@ export default function PostPage({ params }: PostPageProps) {
             className="flex flex-col items-center justify-center py-16 text-gray-400 bg-white dark:bg-[#1A1A1A]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.3 }}
+            transition={{ delay: 0.25, duration: 0.2 }}
           >
             <p className="text-[15px]">No replies yet</p>
             <p className="text-[13px] mt-2 opacity-60">Be the first to reply</p>
@@ -526,7 +526,7 @@ function InteractionButton({
         {loading ? (
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}
           >
             <ArrowPathIcon className="w-5 h-5" />
           </motion.div>
@@ -553,7 +553,7 @@ function ContentRenderer({ post }: { post: any }) {
       className="mb-6"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.25, duration: 0.3 }}
+              transition={{ delay: 0.1, duration: 0.2 }}
     >
       {/* Image Card - Support both 'image' and 'media' types */}
       {(post.type === 'image' || (post.type === 'media' && post.media?.[0]?.type === 'image')) && post.media && (
