@@ -155,7 +155,7 @@ export function optimisticAddComment(
     if (!oldData) return oldData;
 
     const newComment: ThreadPost = {
-      id: `temp-${Date.now()}`, // 临时ID
+      id: `temp-${crypto.randomUUID()}`, // 使用有效的UUID格式
       type: 'text',
       author: comment.author || {
         id: 'current-user',
