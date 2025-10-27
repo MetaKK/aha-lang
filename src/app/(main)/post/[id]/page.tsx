@@ -136,13 +136,15 @@ export default function PostPage({ params }: PostPageProps) {
     onSuccess: () => {
       // 清空输入框
       setCommentText('');
+      // 评论创建成功后，刷新数据以获取真实的评论ID和完整数据
+      // 这样用户就可以对新评论进行点赞等操作
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
     },
     onError: (err, variables, context) => {
       if (context?.previousData) {
         rollbackOptimisticUpdate(queryClient, ['post', id], context.previousData);
       }
     },
-    // 评论成功后不重新获取，使用乐观更新的状态
   });
 
   const handleLike = useCallback(() => {
