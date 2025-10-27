@@ -152,11 +152,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const userProfile = await fetchProfile(session.user.id);
           setProfile(userProfile);
           
-          toast.success('登录成功！');
+          // 只在非模拟认证模式下显示toast
+          if (!isLocalDevelopment()) {
+            toast.success('登录成功！');
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
-          toast.success('已退出登录');
+          
+          // 只在非模拟认证模式下显示toast
+          if (!isLocalDevelopment()) {
+            toast.success('已退出登录');
+          }
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           const transformedUser = transformUser(session.user);
           setUser(transformedUser);
@@ -265,6 +272,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         };
         setProfile(mockProfile);
         
+        // 模拟认证模式下直接显示toast
         toast.success('模拟登录成功！');
       } catch (err: any) {
         const errorMessage = err.message || '模拟登录失败';
@@ -302,7 +310,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const userProfile = await fetchProfile(data.user.id);
         setProfile(userProfile);
         
-        toast.success('登录成功！');
+        // Toast将在onAuthStateChange中显示
       }
     } catch (err: any) {
       let errorMessage = '登录失败';
@@ -341,6 +349,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         setUser(null);
         setProfile(null);
+        // 模拟认证模式下直接显示toast
         toast.success('模拟登出成功！');
       } catch (err: any) {
         const errorMessage = err.message || '模拟登出失败';
@@ -367,7 +376,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setUser(null);
       setProfile(null);
-      toast.success('已退出登录');
+      // Toast将在onAuthStateChange中显示
     } catch (err: any) {
       const errorMessage = err.message || '登出失败';
       setError(errorMessage);
