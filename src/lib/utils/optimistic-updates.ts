@@ -4,7 +4,7 @@
  */
 
 import { QueryClient } from '@tanstack/react-query';
-import type { FeedCard, PostThread, Comment } from '@/types/feed';
+import type { FeedCard, PostThread, Comment, ThreadPost } from '@/types/feed';
 
 /**
  * 乐观更新帖子交互状态
@@ -104,17 +104,19 @@ export function optimisticUpdateCommentInteraction(
 
     const isAdding = action === 'like';
 
-    const updateComment = (comment: Comment): Comment => {
+    const updateComment = (comment: ThreadPost): ThreadPost => {
       if (comment.id === commentId) {
         return {
           ...comment,
           viewer: {
             ...comment.viewer,
             liked: isAdding,
+            reposted: comment.viewer?.reposted || false,
+            bookmarked: comment.viewer?.bookmarked || false,
           },
           stats: {
             ...comment.stats,
-            likes: comment.stats.likes + (isAdding ? 1 : -1),
+            likes: (comment.stats?.likes || 0) + (isAdding ? 1 : -1),
           },
         };
       }
@@ -134,7 +136,7 @@ export function optimisticUpdateCommentInteraction(
       ...oldData,
       post: {
         ...oldData.post,
-        replies: oldData.post.replies.map(updateComment),
+        replies: oldData.post.replies?.map(updateComment) || [],
       },
     };
   });
@@ -146,37 +148,42 @@ export function optimisticUpdateCommentInteraction(
 export function optimisticAddComment(
   queryClient: QueryClient,
   postId: string,
-  comment: Partial<Comment>,
+  comment: Partial<ThreadPost>,
   parentId?: string
 ) {
   queryClient.setQueryData(['post', postId], (oldData: PostThread | undefined) => {
     if (!oldData) return oldData;
 
-    const newComment: Comment = {
+    const newComment: ThreadPost = {
       id: `temp-${Date.now()}`, // 临时ID
-      content: comment.content || '',
+      type: 'text',
       author: comment.author || {
         id: 'current-user',
         handle: 'you',
         displayName: 'You',
         avatar: '',
       },
+      content: comment.content || '',
       createdAt: new Date().toISOString(),
-      parentId: parentId || null,
-      replyCount: 0,
-      depth: parentId ? 1 : 0,
-      replies: [],
+      stats: {
+        replies: 0,
+        reposts: 0,
+        likes: 0,
+        bookmarks: 0,
+        views: 0,
+      },
       viewer: {
         liked: false,
+        reposted: false,
+        bookmarked: false,
       },
-      stats: {
-        likes: 0,
-      },
+      replyCount: 0,
+      replies: [],
     };
 
     if (parentId) {
       // 添加为回复
-      const addReplyToComment = (c: Comment): Comment => {
+      const addReplyToComment = (c: ThreadPost): ThreadPost => {
         if (c.id === parentId) {
           return {
             ...c,
@@ -199,7 +206,7 @@ export function optimisticAddComment(
         ...oldData,
         post: {
           ...oldData.post,
-          replies: oldData.post.replies.map(addReplyToComment),
+          replies: oldData.post.replies?.map(addReplyToComment) || [],
         },
       };
     } else {
@@ -208,7 +215,7 @@ export function optimisticAddComment(
         ...oldData,
         post: {
           ...oldData.post,
-          replies: [newComment, ...oldData.post.replies],
+          replies: [newComment, ...(oldData.post.replies || [])],
         },
       };
     }
@@ -231,7 +238,7 @@ export function optimisticAddComment(
               ...card,
               stats: {
                 ...card.stats,
-                comments: card.stats.comments + 1,
+                replies: card.stats.replies + 1,
               },
             };
           }),
