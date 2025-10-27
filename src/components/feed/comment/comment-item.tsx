@@ -49,6 +49,10 @@ export const CommentItem = memo<CommentItemProps>(({
   }, [comment.id, replyText, onReply, isReplying]);
 
   const handleLike = useCallback(() => {
+    // 阻止对乐观更新的临时评论进行点赞
+    if (comment.id.startsWith('optimistic-')) {
+      return;
+    }
     if (onLike) {
       onLike(comment.id, comment.viewer?.liked || false);
     }
@@ -128,9 +132,12 @@ export const CommentItem = memo<CommentItemProps>(({
             {/* 点赞按钮 */}
             <button
               onClick={handleLike}
+              disabled={comment.id.startsWith('optimistic-')}
               className={cn(
                 "flex items-center gap-1 text-[13px] transition-colors",
-                comment.viewer?.liked
+                comment.id.startsWith('optimistic-')
+                  ? "text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-50"
+                  : comment.viewer?.liked
                   ? "text-red-500"
                   : "text-gray-500 hover:text-red-500"
               )}

@@ -323,8 +323,9 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
     const storedReplies: ThreadPost[] = storedCommentTree.map(convertCommentToThreadPost);
 
     // Combine default replies with stored comments
+    // 最新的评论排在最前面（降序排列）
     const replies: ThreadPost[] = [...storedReplies, ...defaultReplies].sort((a, b) => 
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
     return {
@@ -408,7 +409,7 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
       .eq('target_id', postId)
       .eq('target_type', 'card')
       .in('type', ['comment', 'reply'])
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false });
 
     if (allRepliesError) {
       console.error('[fetchPostThread] All replies fetch error:', allRepliesError);
