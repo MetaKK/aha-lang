@@ -169,23 +169,30 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
     
     setIsGeneratingScene(true);
     try {
-      // 基于小说内容生成场景 - 使用更严格的JSON格式要求
-      const scenePrompt = `Return this exact JSON structure with your content:
+      // 基于小说内容生成精彩场景 - 优化版prompt
+      const scenePrompt = `Act as a **conversation scene designer** that creates memorable English dialogue challenges from "${novel.title}" by ${novel.author}.
+
+**Story Context:** ${novel.excerpt}
+
+**Design Requirements:**
+- Create a **memorable, emotionally engaging** conversation scene
+- Choose a **pivotal moment** from the story that leaves a lasting impression
+- Make the dialogue **dramatic, meaningful, or emotionally charged**
+- Ensure the scene is **visually vivid** and **emotionally resonant**
+
+**Difficulty:** A2-B1 level English (intermediate learners)
+
+**Return this exact JSON structure:**
 
 {
-  "title": "Space Honeymoon Adventure",
-  "description": "Practice a conversation about visiting the Moon",
-  "context": "Emma and you are on your honeymoon in space. You are discussing your exciting experiences visiting the Moon and flying far from Earth.",
-  "goal": "Use simple sentences to describe your adventure and express feelings about space travel",
+  "title": "[Scene Title - Make it dramatic and memorable]",
+  "description": "[Brief description of the emotional impact]",
+  "context": "[Vivid scene setting with emotional stakes - what makes this moment special?]",
+  "goal": "[Specific conversation goal that creates tension or emotional connection]",
   "difficulty": "A2"
 }
 
-**INSTRUCTIONS:**
-- Replace the example content with content related to: "${novel.title}" by ${novel.author}
-- Synopsis: ${novel.excerpt}
-- Keep the exact JSON structure
-- Use A2-B1 level English
-- Return ONLY the JSON object, nothing else
+**Key Focus:** Create a scene that students will remember - make it emotionally engaging, visually striking, or dramatically significant.
 
 JSON:`;
 
@@ -292,28 +299,45 @@ JSON:`;
         .map(m => `${m.role === 'assistant' ? 'AI' : 'Student'}: ${m.content}`)
         .join('\n');
 
-      const evaluationPrompt = `Return this exact JSON structure with your content:
+      // 智能评估系统 - 优化版prompt
+      const evaluationPrompt = `Act as a **conversation evaluator** that provides fair, encouraging feedback for English learners.
+
+**Student Response:** "${userMessage.content}"
+**Scene:** ${scene.title}
+**Context:** ${scene.context}
+**Goal:** ${scene.goal}
+**Conversation History:** ${conversationContext}
+
+**Evaluation Criteria:**
+- **Communication (0-100):** Did the student express their thoughts clearly and appropriately?
+- **Accuracy (0-100):** Grammar, vocabulary, and language structure correctness
+- **Scenario (0-100):** How well did the response fit the dramatic scene context?
+- **Fluency (0-100):** Natural flow and confidence in expression
+
+**Scoring Guidelines:**
+- **85-100:** Excellent - exceeds expectations
+- **70-84:** Good - meets expectations with minor issues
+- **55-69:** Fair - shows effort but needs improvement
+- **40-54:** Needs work - significant issues but shows attempt
+- **0-39:** Poor - major problems or inappropriate response
+
+**Feedback Style:** Encouraging, specific, and actionable. Focus on what they did well first.
+
+**Return this exact JSON structure:**
 
 {
   "scores": {
-    "communication": 85,
-    "accuracy": 80,
-    "scenario": 90,
-    "fluency": 85
+    "communication": [score],
+    "accuracy": [score],
+    "scenario": [score],
+    "fluency": [score]
   },
-  "feedback": "Great job! You used natural expressions.",
-  "response": "That sounds interesting! Tell me more.",
-  "hasChinese": false
+  "feedback": "[Encouraging feedback with specific praise and gentle suggestions]",
+  "response": "[AI's natural, engaging response that continues the dramatic scene]",
+  "hasChinese": [true/false]
 }
 
-**INSTRUCTIONS:**
-- Replace the example content with evaluation for: "${userMessage.content}"
-- Scenario: ${scene.title}
-- Context: ${scene.context}
-- Goal: ${scene.goal}
-- Conversation: ${conversationContext}
-- Keep the exact JSON structure
-- Return ONLY the JSON object, nothing else
+**Key Focus:** Be fair but encouraging. Reward effort and creativity. Make the feedback memorable and helpful.
 
 JSON:`;
 
