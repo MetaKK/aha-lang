@@ -202,10 +202,10 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
       scale: 1,
       transition: {
         type: 'spring',
-        stiffness: 100,
-        damping: 20,
-        delay: i * 0.1,
-        duration: 0.8,
+        stiffness: 150,
+        damping: 25,
+        delay: i * 0.05,
+        duration: 0.5,
       }
     })
   };
@@ -326,7 +326,37 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
                 : 'bg-white/95 border-gray-200'
             )}
           >
-            <div className="p-5 space-y-5">
+            {/* 设置面板粒子效果 */}
+            <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 rounded-full bg-primary/20"
+                  animate={{
+                    x: [
+                      Math.random() * 240 + 'px',
+                      Math.random() * 240 + 'px',
+                      Math.random() * 240 + 'px',
+                    ],
+                    y: [
+                      Math.random() * 200 + 'px',
+                      Math.random() * 200 + 'px',
+                      Math.random() * 200 + 'px',
+                    ],
+                    scale: [0, 1, 0],
+                    opacity: [0, 0.6, 0],
+                  }}
+                  transition={{
+                    duration: 4 + Math.random() * 2,
+                    repeat: Infinity,
+                    delay: i * 0.3,
+                    ease: 'easeInOut',
+                  }}
+                />
+              ))}
+            </div>
+            
+            <div className="p-5 space-y-5 relative z-10">
               {/* 主题选择 - Apple风格图标卡片 */}
               <div>
                 <div className="grid grid-cols-3 gap-3">
@@ -341,7 +371,7 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
                         className={cn(
                           'relative p-4 rounded-xl transition-all',
                           'flex flex-col items-center gap-2',
-                          'border-2 overflow-hidden',
+                          'overflow-hidden',
                           isSelected
                             ? 'border-primary shadow-lg'
                             : 'border-gray-200 dark:border-gray-700',
@@ -369,7 +399,9 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
                             animate={{ scale: 1 }}
                             className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full"
                             style={{
-                              backgroundColor: t.colors.accent,
+                              backgroundColor: t.id === 'sepia' 
+                                ? '#FFC107' // Sepia主题用亮黄色
+                                : t.colors.accent,
                             }}
                           />
                         )}
@@ -393,7 +425,7 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
                         className={cn(
                           'relative flex-1 py-3 rounded-xl transition-all',
                           'text-sm font-medium overflow-hidden',
-                          'border-2 flex items-center justify-center',
+                          'flex items-center justify-center',
                           isSelected
                             ? 'border-primary shadow-lg'
                             : 'border-gray-200 dark:border-gray-700'
@@ -525,7 +557,6 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
                 <div className={cn(
                   'relative overflow-hidden rounded-3xl',
                   'backdrop-blur-xl',
-                  'border-2',
                   'shadow-2xl',
                   theme === 'night'
                     ? 'bg-gradient-to-br from-gray-900/95 to-gray-800/95 border-primary/30'
@@ -865,8 +896,12 @@ function ParagraphWithMagic({
             <div
               className="w-1.5 h-1.5 rounded-full"
               style={{
-                backgroundColor: currentTheme.colors.accent,
-                boxShadow: `0 0 8px ${currentTheme.colors.accent}`,
+                backgroundColor: currentTheme.id === 'sepia' 
+                  ? '#FFC107' // Sepia主题用亮黄色
+                  : currentTheme.colors.accent,
+                boxShadow: currentTheme.id === 'sepia'
+                  ? '0 0 8px #FFC107' // Sepia主题用亮黄色阴影
+                  : `0 0 8px ${currentTheme.colors.accent}`,
               }}
             />
           </motion.div>
