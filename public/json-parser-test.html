@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Parser Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-case { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>JSON Parser Test</h1>
+    <p>Testing the improved JSON parser with various malformed JSON inputs.</p>
+    
+    <button onclick="runTests()">Run All Tests</button>
+    
+    <div id="results"></div>
+
+    <script>
+        // 复制JSON解析器的逻辑
+        function parseAIJson(text) {
+            const originalText = text.trim();
+            
+            // 第一步：清理文本
+            let cleanText = originalText;
+            
+            // 移除markdown代码块
+            cleanText = cleanText.replace(/^```json\s*/g, '').replace(/^```\s*/g, '');
+            cleanText = cleanText.replace(/\s*```$/g, '');
+            cleanText = cleanText.trim();
+            
+            // 提取JSON对象
+            const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                return {
+                    success: false,
+                    error: 'No valid JSON object found',
+                    originalText
+                };
+            }
+            
+            let jsonText = jsonMatch[0];
+            
+            // 第二步：尝试直接解析
+            try {
+                const data = JSON.parse(jsonText);
+                return {
+                    success: true,
+                    data,
+                    originalText,
+                    fixedText: jsonText
+                };
+            } catch (error) {
+                console.warn('Direct JSON parse failed, attempting fixes...', error);
+            }
+            
+            // 第三步：应用修复规则
+            let fixedText = jsonText;
+            
+            // 修复规则1：处理重复的大括号
+            fixedText = fixedText.replace(/\{\s*\{/g, '{');
+            
+            // 修复规则2：处理缺少引号的属性名
+            fixedText = fixedText.replace(/(\w+)(\s*:)/g, '"$1"$2');
+            
+            // 修复规则3：处理缺少引号的值（数字除外）
+            fixedText = fixedText.replace(/:\s*([^",{\[\s][^,}\]]*?)(\s*[,}])/g, (match, value, ending) => {
+                // 如果是数字、布尔值或null，不加引号
+                if (/^(true|false|null|\d+(\.\d+)?)$/.test(value.trim())) {
+                    return `: ${value.trim()}${ending}`;
+                }
+                // 否则加引号
+                return `: "${value.trim()}"${ending}`;
+            });
+            
+            // 修复规则4：处理缺少冒号的情况
+            fixedText = fixedText.replace(/"([^"]+)"\s+"([^"]+)"/g, '"$1": "$2"');
+            
+            // 修复规则5：处理属性名后的空格问题
+            fixedText = fixedText.replace(/"\s+([^"]*)"\s*:/g, '"$1":');
+            
+            // 修复规则6：处理多余的引号
+            fixedText = fixedText.replace(/"\s*"\s*:/g, '":');
+            
+            // 修复规则7：处理控制字符
+            fixedText = fixedText.replace(/[\x00-\x1F\x7F]/g, '');
+            
+            // 修复规则8：处理嵌套对象中的问题
+            fixedText = fixedText.replace(/\{\s*"([^"]+)"\s*([^}]+)\s*\}/g, '{"$1": $2}');
+            
+            // 修复规则9：确保最后一个属性后有逗号
+            fixedText = fixedText.replace(/"([^"]*)"\s*}/g, '"$1"}');
+            
+            // 修复规则10：处理hasChinese字段的特殊情况
+            fixedText = fixedText.replace(/"hasChinese"\s*(\w+)/g, '"hasChinese": $1');
+            
+            // 修复规则11：处理scores对象中的问题
+            fixedText = fixedText.replace(/"scores"\s*:\s*\{([^}]+)\}/g, (match, scoresContent) => {
+                // 修复scores内容
+                let fixedScores = scoresContent;
+                fixedScores = fixedScores.replace(/(\w+)(\d+)/g, '"$1": $2');
+                fixedScores = fixedScores.replace(/"(\w+)"\s*(\d+)/g, '"$1": $2');
+                return `"scores": {${fixedScores}}`;
+            });
+            
+            // 第四步：尝试解析修复后的文本
+            try {
+                const data = JSON.parse(fixedText);
+                return {
+                    success: true,
+                    data,
+                    originalText,
+                    fixedText
+                };
+            } catch (error) {
+                console.error('JSON fix failed:', error);
+                console.error('Original text:', originalText);
+                console.error('Fixed text:', fixedText);
+                
+                return {
+                    success: false,
+                    error: `JSON parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                    originalText,
+                    fixedText
+                };
+            }
+        }
+
+        function safeParseAIJson(text, defaultValue) {
+            const result = parseAIJson(text);
+            return result.success ? result.data : defaultValue;
+        }
+
+        // 测试用例
+        const testCases = [
+            {
+                name: "正常JSON",
+                input: '{"scores": {"communication": 85, "accuracy": 80}, "feedback": "Good job!", "hasChinese": false}',
+                expected: true
+            },
+            {
+                name: "缺少引号的属性名",
+                input: '{scores: {"communication": 85, "accuracy": 80}, feedback: "Good job!", hasChinese: false}',
+                expected: true
+            },
+            {
+                name: "缺少引号的值",
+                input: '{"scores": {"communication": 85, "accuracy": 80}, "feedback": Good job!, "hasChinese": false}',
+                expected: true
+            },
+            {
+                name: "缺少冒号",
+                input: '{"scores" {"communication": 85, "accuracy": 80}, "feedback" "Good job!", "hasChinese" false}',
+                expected: true
+            },
+            {
+                name: "重复大括号",
+                input: '{{"scores": {"communication": 85, "accuracy": 80}, "feedback": "Good job!", "hasChinese": false}}',
+                expected: true
+            },
+            {
+                name: "复杂错误JSON（模拟AI错误）",
+                input: `{
+  {
+    "communication85,
+ "accuracy80,
+ "scenario90,
+    "fluency 85
+  },
+ " "Great idea! Enjoying juice while seeing Earth sounds wonderful.",
+  "response": "Let's find a nice spot to relax and enjoy the view together!",
+  "hasChinese false}`,
+                expected: true
+            }
+        ];
+
+        function runTests() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            testCases.forEach((testCase, index) => {
+                const result = parseAIJson(testCase.input);
+                const isSuccess = result.success === testCase.expected;
+                
+                const testDiv = document.createElement('div');
+                testDiv.className = `test-case ${isSuccess ? 'success' : 'error'}`;
+                
+                testDiv.innerHTML = `
+                    <h3>Test ${index + 1}: ${testCase.name}</h3>
+                    <p><strong>Status:</strong> ${isSuccess ? '✅ PASS' : '❌ FAIL'}</p>
+                    <p><strong>Expected:</strong> ${testCase.expected ? 'Success' : 'Failure'}</p>
+                    <p><strong>Actual:</strong> ${result.success ? 'Success' : 'Failure'}</p>
+                    ${result.error ? `<p><strong>Error:</strong> ${result.error}</p>` : ''}
+                    <details>
+                        <summary>Original Input</summary>
+                        <pre>${testCase.input}</pre>
+                    </details>
+                    ${result.fixedText ? `
+                        <details>
+                            <summary>Fixed Text</summary>
+                            <pre>${result.fixedText}</pre>
+                        </details>
+                    ` : ''}
+                    ${result.data ? `
+                        <details>
+                            <summary>Parsed Data</summary>
+                            <pre>${JSON.stringify(result.data, null, 2)}</pre>
+                        </details>
+                    ` : ''}
+                `;
+                
+                resultsDiv.appendChild(testDiv);
+            });
+        }
+    </script>
+</body>
+</html>

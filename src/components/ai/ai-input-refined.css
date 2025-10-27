@@ -1,0 +1,230 @@
+/* AI Input Refined - 精致优化样式 */
+
+/* 精致动画 */
+@keyframes refined-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+  }
+}
+
+@keyframes refined-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+@keyframes refined-shimmer {
+  0% { 
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% { 
+    opacity: 1;
+  }
+  100% { 
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* 精致输入组件 */
+.ai-input-refined {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 20px -4px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-input-refined:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 8px 25px -4px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(168, 85, 247, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.ai-input-refined:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 30px -4px rgba(168, 85, 247, 0.2),
+    0 0 0 1px rgba(168, 85, 247, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: refined-glow 2s ease-in-out infinite;
+}
+
+/* 精致按钮 */
+.ai-button-refined {
+  position: relative;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  border-radius: 12px;
+  box-shadow: 
+    0 2px 8px rgba(168, 85, 247, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.ai-button-refined::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: left 0.3s ease;
+}
+
+.ai-button-refined:hover::before {
+  left: 100%;
+}
+
+.ai-button-refined:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 
+    0 4px 12px rgba(168, 85, 247, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.ai-button-refined:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 语音按钮特殊效果 */
+.ai-voice-refined {
+  position: relative;
+  background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+}
+
+.ai-voice-refined::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  z-index: -1;
+  animation: refined-pulse 2s infinite;
+}
+
+/* 精致建议面板 */
+.ai-suggestions-refined {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 12px;
+  box-shadow: 
+    0 8px 25px -4px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.ai-suggestion-refined {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-suggestion-refined::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.08), transparent);
+  transition: left 0.3s ease;
+}
+
+.ai-suggestion-refined:hover::before {
+  left: 100%;
+}
+
+.ai-suggestion-refined:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.15);
+}
+
+/* 精致装饰线 */
+.ai-decoration-refined {
+  background: linear-gradient(90deg, #a855f7, #ec4899, #f97316);
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .ai-input-refined {
+    border-radius: 12px;
+    margin: 0 12px;
+  }
+  
+  .ai-button-refined {
+    border-radius: 8px;
+  }
+}
+
+/* 暗色模式精致优化 */
+@media (prefers-color-scheme: dark) {
+  .ai-input-refined {
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(75, 85, 99, 0.5);
+    box-shadow: 
+      0 4px 20px -4px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(75, 85, 99, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  .ai-suggestions-refined {
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(75, 85, 99, 0.5);
+  }
+}
+
+/* 性能优化 */
+.ai-input-refined,
+.ai-button-refined,
+.ai-suggestion-refined {
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 无障碍优化 */
+@media (prefers-reduced-motion: reduce) {
+  .ai-input-refined,
+  .ai-button-refined,
+  .ai-suggestion-refined {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .ai-input-refined {
+    border: 2px solid currentColor;
+    background: Canvas;
+  }
+  
+  .ai-button-refined {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 2px solid ButtonText;
+  }
+}

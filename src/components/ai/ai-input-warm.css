@@ -1,0 +1,283 @@
+/* AI Input Warm - Apple + 皮克斯温暖科技感样式 */
+
+/* Apple风格的温暖动画 */
+@keyframes apple-glow {
+  0%, 100% { 
+    box-shadow: 0 0 30px rgba(251, 146, 60, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(251, 146, 60, 0.4);
+  }
+}
+
+@keyframes pixar-bounce {
+  0%, 100% { 
+    transform: scale(1) translateY(0);
+  }
+  50% { 
+    transform: scale(1.05) translateY(-2px);
+  }
+}
+
+@keyframes warm-shimmer {
+  0% { 
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% { 
+    opacity: 1;
+  }
+  100% { 
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes cozy-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* Apple风格的温暖输入组件 */
+.ai-input-warm {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.6) 100%);
+  backdrop-filter: blur(24px);
+  border-left: 1px solid rgba(251, 146, 60, 0.3);
+  border-right: 1px solid rgba(251, 146, 60, 0.3);
+  border-radius: 24px;
+  box-shadow: 
+    0 8px 32px -8px rgba(251, 146, 60, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.ai-input-warm:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 40px -8px rgba(251, 146, 60, 0.2),
+    0 0 0 1px rgba(251, 146, 60, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ai-input-warm:focus-within {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 16px 48px -8px rgba(251, 146, 60, 0.25),
+    0 0 0 1px rgba(251, 146, 60, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  animation: apple-glow 3s ease-in-out infinite;
+}
+
+/* Apple风格的温暖按钮 */
+.ai-button-warm {
+  position: relative;
+  background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 16px rgba(251, 146, 60, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
+}
+
+.ai-button-warm::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.4s ease;
+}
+
+.ai-button-warm:hover::before {
+  left: 100%;
+}
+
+.ai-button-warm:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 
+    0 6px 20px rgba(251, 146, 60, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: pixar-bounce 2s ease-in-out infinite;
+}
+
+.ai-button-warm:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 语音按钮特殊效果 */
+.ai-voice-warm {
+  position: relative;
+  background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+}
+
+.ai-voice-warm::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 19px;
+  background: linear-gradient(135deg, #f97316, #fbbf24);
+  z-index: -1;
+  animation: cozy-pulse 2s infinite;
+}
+
+/* Apple风格的温暖建议面板 */
+.ai-suggestions-warm {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%);
+  backdrop-filter: blur(24px);
+  border-left: 1px solid rgba(251, 146, 60, 0.3);
+  border-right: 1px solid rgba(251, 146, 60, 0.3);
+  border-radius: 16px;
+  box-shadow: 
+    0 12px 40px -8px rgba(251, 146, 60, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.ai-suggestion-warm {
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.08) 0%, rgba(251, 191, 36, 0.08) 100%);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-suggestion-warm::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(251, 146, 60, 0.1), transparent);
+  transition: left 0.4s ease;
+}
+
+.ai-suggestion-warm:hover::before {
+  left: 100%;
+}
+
+.ai-suggestion-warm:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.12) 0%, rgba(251, 191, 36, 0.12) 100%);
+  box-shadow: 0 4px 16px rgba(251, 146, 60, 0.2);
+}
+
+/* Apple风格的温暖装饰线 */
+.ai-decoration-warm {
+  background: linear-gradient(90deg, #f97316, #fbbf24, #facc15);
+  border-radius: 2px;
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 皮克斯风格的温暖光效 */
+.ai-glow-warm {
+  position: relative;
+}
+
+.ai-glow-warm::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, #f97316, #fbbf24, #facc15);
+  border-radius: 26px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.ai-glow-warm:focus-within::before {
+  opacity: 0.3;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .ai-input-warm {
+    border-radius: 20px;
+    margin: 0 16px;
+  }
+  
+  .ai-button-warm {
+    border-radius: 12px;
+  }
+}
+
+/* 暗色模式温暖优化 */
+@media (prefers-color-scheme: dark) {
+  .ai-input-warm {
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.7) 0%, rgba(17, 24, 39, 0.6) 100%);
+    border-left: 1px solid rgba(251, 146, 60, 0.3);
+  border-right: 1px solid rgba(251, 146, 60, 0.3);
+    box-shadow: 
+      0 8px 32px -8px rgba(251, 146, 60, 0.2),
+      0 0 0 1px rgba(75, 85, 99, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  .ai-suggestions-warm {
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.9) 0%, rgba(17, 24, 39, 0.8) 100%);
+    border-left: 1px solid rgba(251, 146, 60, 0.3);
+  border-right: 1px solid rgba(251, 146, 60, 0.3);
+  }
+}
+
+/* Apple风格的性能优化 */
+.ai-input-warm,
+.ai-button-warm,
+.ai-suggestion-warm {
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 无障碍优化 */
+@media (prefers-reduced-motion: reduce) {
+  .ai-input-warm,
+  .ai-button-warm,
+  .ai-suggestion-warm {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .ai-input-warm {
+    border: 2px solid currentColor;
+    background: Canvas;
+  }
+  
+  .ai-button-warm {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 2px solid ButtonText;
+  }
+}
+
+/* Apple风格的温暖渐变背景 */
+.ai-warm-bg {
+  background: linear-gradient(135deg, 
+    rgba(255, 248, 240, 0.8) 0%,
+    rgba(255, 241, 242, 0.8) 25%,
+    rgba(255, 251, 235, 0.8) 50%,
+    rgba(254, 252, 232, 0.8) 75%,
+    rgba(255, 248, 240, 0.8) 100%
+  );
+}
+
+/* 皮克斯风格的温暖阴影 */
+.ai-pixar-shadow {
+  box-shadow: 
+    0 4px 20px rgba(251, 146, 60, 0.15),
+    0 2px 8px rgba(251, 146, 60, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
