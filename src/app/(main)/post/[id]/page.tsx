@@ -381,7 +381,7 @@ export default function PostPage({ params }: PostPageProps) {
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Post your reply"
-                  className="w-full px-0 py-2 text-[15px] bg-transparent border-none outline-none resize-none text-gray-900 dark:text-white placeholder-gray-500"
+                  className="w-full px-0 py-2 text-[15px] bg-transparent border-none outline-none resize-none text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-0 transition-colors duration-200"
                   rows={2}
                   maxLength={280}
                   onKeyDown={(e) => {
