@@ -290,17 +290,36 @@ CREATE TABLE public.interactions (
   -- 评论内容
   content TEXT,
   
+  -- 嵌套评论支持
+  parent_id UUID REFERENCES public.interactions(id) ON DELETE CASCADE,
+  reply_count INTEGER DEFAULT 0 CHECK (reply_count >= 0),
+  
   -- 时间戳
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
-  -- 防止重复点赞/收藏
-  UNIQUE(user_id, target_id, target_type, type)
+  -- 约束：评论必须有内容
+  CONSTRAINT check_comment_content CHECK (
+    (type IN ('comment', 'reply') AND content IS NOT NULL AND length(trim(content)) > 0)
+    OR type NOT IN ('comment', 'reply')
+  ),
+  
+  -- 约束：reply类型必须有parent_id
+  CONSTRAINT check_reply_parent CHECK (
+    (type = 'reply' AND parent_id IS NOT NULL)
+    OR type != 'reply'
+  )
 );
 
 -- 互动索引
 CREATE INDEX idx_interactions_target ON public.interactions(target_id, target_type);
 CREATE INDEX idx_interactions_user ON public.interactions(user_id, type);
 CREATE INDEX idx_interactions_created ON public.interactions(created_at DESC);
+CREATE INDEX idx_interactions_parent ON public.interactions(parent_id) WHERE parent_id IS NOT NULL;
+
+-- 部分唯一索引：仅对like/bookmark/repost生效，允许同一用户多次评论
+CREATE UNIQUE INDEX idx_interactions_unique_actions 
+ON public.interactions(user_id, target_id, target_type, type)
+WHERE type IN ('like', 'bookmark', 'repost');
 
 -- 互动RLS策略
 ALTER TABLE public.interactions ENABLE ROW LEVEL SECURITY;
@@ -732,5 +751,104 @@ BEGIN
       )
     )
   );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 触发器函数：自动更新reply_count
+CREATE OR REPLACE FUNCTION update_interaction_reply_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    -- 新增回复时，更新父评论的reply_count
+    IF NEW.parent_id IS NOT NULL AND NEW.type = 'reply' THEN
+      UPDATE public.interactions
+      SET reply_count = reply_count + 1
+      WHERE id = NEW.parent_id;
+    END IF;
+    RETURN NEW;
+    
+  ELSIF TG_OP = 'DELETE' THEN
+    -- 删除回复时，减少父评论的reply_count
+    IF OLD.parent_id IS NOT NULL AND OLD.type = 'reply' THEN
+      UPDATE public.interactions
+      SET reply_count = GREATEST(reply_count - 1, 0)
+      WHERE id = OLD.parent_id;
+    END IF;
+    RETURN OLD;
+  END IF;
+  
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 创建触发器
+CREATE TRIGGER trigger_update_reply_count
+  AFTER INSERT OR DELETE ON public.interactions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_interaction_reply_count();
+
+-- 获取评论树（包含嵌套回复）
+CREATE OR REPLACE FUNCTION get_comment_tree(
+  p_target_id UUID,
+  p_target_type VARCHAR(20),
+  p_max_depth INTEGER DEFAULT 3
+)
+RETURNS TABLE (
+  id UUID,
+  user_id UUID,
+  target_id UUID,
+  target_type VARCHAR(20),
+  type VARCHAR(20),
+  content TEXT,
+  parent_id UUID,
+  reply_count INTEGER,
+  depth INTEGER,
+  path UUID[],
+  created_at TIMESTAMP WITH TIME ZONE
+) AS $$
+BEGIN
+  RETURN QUERY
+  WITH RECURSIVE comment_tree AS (
+    -- 基础查询：获取一级评论
+    SELECT 
+      i.id,
+      i.user_id,
+      i.target_id,
+      i.target_type,
+      i.type,
+      i.content,
+      i.parent_id,
+      i.reply_count,
+      0 as depth,
+      ARRAY[i.id] as path,
+      i.created_at
+    FROM public.interactions i
+    WHERE i.target_id = p_target_id
+      AND i.target_type = p_target_type
+      AND i.type = 'comment'
+      AND i.parent_id IS NULL
+    
+    UNION ALL
+    
+    -- 递归查询：获取嵌套回复
+    SELECT 
+      i.id,
+      i.user_id,
+      i.target_id,
+      i.target_type,
+      i.type,
+      i.content,
+      i.parent_id,
+      i.reply_count,
+      ct.depth + 1,
+      ct.path || i.id,
+      i.created_at
+    FROM public.interactions i
+    INNER JOIN comment_tree ct ON i.parent_id = ct.id
+    WHERE ct.depth < p_max_depth
+      AND i.type = 'reply'
+  )
+  SELECT * FROM comment_tree
+  ORDER BY path, created_at ASC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

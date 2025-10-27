@@ -7,9 +7,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartOutline, BookmarkIcon as BookmarkOutline, ArrowPathRoundedSquareIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolid, BookmarkIcon as BookmarkSolid } from '@heroicons/react/24/solid';
-import { fetchPostThread, interactWithPost, createComment } from '@/lib/api/feed';
+import { fetchPostThread, interactWithPost, createComment, interactWithComment } from '@/lib/api/feed';
 import { PostCard } from '@/components/feed/post-card';
-import type { FeedCard } from '@/types/feed';
+import { CommentList } from '@/components/feed/comment';
+import type { FeedCard, Comment, ThreadPost } from '@/types/feed';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
@@ -66,8 +67,8 @@ export default function PostPage({ params }: PostPageProps) {
 
   // Comment mutation
   const commentMutation = useMutation({
-    mutationFn: async (content: string) => {
-      await createComment(id, content);
+    mutationFn: async ({ content, parentId }: { content: string; parentId?: string }) => {
+      await createComment(id, content, parentId);
     },
     onSuccess: () => {
       setCommentText('');
@@ -105,9 +106,58 @@ export default function PostPage({ params }: PostPageProps) {
       return;
     }
     if (commentText.trim()) {
-      commentMutation.mutate(commentText.trim());
+      commentMutation.mutate({ content: commentText.trim() });
     }
   }, [user, router, commentText, commentMutation]);
+
+  // Comment like mutation
+  const commentLikeMutation = useMutation({
+    mutationFn: async ({ commentId, isLiked }: { commentId: string; isLiked: boolean }) => {
+      const action = isLiked ? 'unlike' : 'like';
+      await interactWithComment(commentId, action);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+    },
+  });
+
+  // Handle reply to comment
+  const handleReply = useCallback((commentId: string, content: string) => {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
+    commentMutation.mutate({ content, parentId: commentId });
+  }, [user, router, commentMutation]);
+
+  // Handle like comment
+  const handleLikeComment = useCallback((commentId: string, isLiked: boolean) => {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
+    commentLikeMutation.mutate({ commentId, isLiked });
+  }, [user, router, commentLikeMutation]);
+
+  // Convert ThreadPost replies to Comment format
+  const convertToComments = useCallback((replies: ThreadPost[]): Comment[] => {
+    return replies.map(reply => ({
+      id: reply.id,
+      userId: reply.author.id,
+      targetId: id,
+      targetType: 'card' as const,
+      type: 'comment' as const,
+      content: reply.content,
+      parentId: undefined,
+      replyCount: reply.replyCount || 0,
+      depth: 0,
+      author: reply.author,
+      createdAt: reply.createdAt,
+      replies: reply.replies ? convertToComments(reply.replies) : undefined,
+      viewer: reply.viewer ? { liked: reply.viewer.liked } : undefined,
+      stats: { likes: reply.stats?.likes || 0 },
+    }));
+  }, [id]);
 
   // Loading state
   if (isLoading) {
@@ -386,39 +436,16 @@ export default function PostPage({ params }: PostPageProps) {
           </motion.div>
         )}
 
-        {/* Replies - X-style layout */}
-        {data.replies && data.replies.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.25, duration: 0.2 }}
-          >
-            {data.replies.map((reply, index) => (
-              <motion.div
-                key={'id' in reply ? reply.id : Math.random()}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + index * 0.03, duration: 0.2 }}
-                className="border-b bg-white dark:bg-[#1A1A1A] border-subtle"
-              >
-                <PostCard card={reply as FeedCard} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
-        {/* No replies state */}
-        {(!data.replies || data.replies.length === 0) && (
-          <motion.div 
-            className="flex flex-col items-center justify-center py-16 text-gray-400 bg-white dark:bg-[#1A1A1A]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.25, duration: 0.2 }}
-          >
-            <p className="text-[15px]">No replies yet</p>
-            <p className="text-[13px] mt-2 opacity-60">Be the first to reply</p>
-          </motion.div>
-        )}
+        {/* Comments - Nested comment system */}
+        <div className="bg-white dark:bg-[#1A1A1A] px-4">
+          <CommentList
+            comments={data.replies ? convertToComments(data.replies) : []}
+            onReply={handleReply}
+            onLike={handleLikeComment}
+            isReplying={commentMutation.isPending || commentLikeMutation.isPending}
+            maxDepth={3}
+          />
+        </div>
       </main>
     </div>
   );

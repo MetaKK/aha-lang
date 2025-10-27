@@ -25,6 +25,8 @@ interface StoredComment {
     displayName: string;
     avatar: string;
   };
+  parentId?: string;
+  replyCount?: number;
   createdAt: string;
 }
 
@@ -62,9 +64,42 @@ export const commentStorage = {
     return safeParse(data, []);
   },
 
-  // 获取特定帖子的评论
+  // 获取特定帖子的评论（仅顶级评论）
   getByPostId(postId: string): StoredComment[] {
-    return this.getAll().filter(comment => comment.postId === postId);
+    return this.getAll().filter(comment => comment.postId === postId && !comment.parentId);
+  },
+
+  // 获取特定评论的回复
+  getRepliesByCommentId(commentId: string): StoredComment[] {
+    return this.getAll().filter(comment => comment.parentId === commentId);
+  },
+
+  // 获取评论树（包含嵌套回复）
+  getCommentTree(postId: string): StoredComment[] {
+    const allComments = this.getAll().filter(c => c.postId === postId);
+    const commentMap = new Map<string, StoredComment & { replies?: StoredComment[] }>();
+    const topLevelComments: (StoredComment & { replies?: StoredComment[] })[] = [];
+
+    // 第一遍：创建所有评论的映射
+    allComments.forEach(comment => {
+      commentMap.set(comment.id, { ...comment, replies: [] });
+    });
+
+    // 第二遍：构建树结构
+    allComments.forEach(comment => {
+      const commentWithReplies = commentMap.get(comment.id)!;
+      if (comment.parentId) {
+        const parent = commentMap.get(comment.parentId);
+        if (parent) {
+          parent.replies = parent.replies || [];
+          parent.replies.push(commentWithReplies);
+        }
+      } else {
+        topLevelComments.push(commentWithReplies);
+      }
+    });
+
+    return topLevelComments;
   },
 
   // 添加评论

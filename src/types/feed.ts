@@ -222,6 +222,37 @@ export interface PostThread {
   ancestors?: ThreadPost[];
 }
 
+// Comment types for nested comments
+export interface Comment {
+  id: string;
+  userId: string;
+  targetId: string;
+  targetType: 'card' | 'comment' | 'chapter' | 'quest';
+  type: 'comment' | 'reply';
+  content: string;
+  parentId?: string;
+  replyCount: number;
+  depth: number;
+  author: Author;
+  createdAt: string;
+  // Nested replies
+  replies?: Comment[];
+  // Viewer interaction state
+  viewer?: {
+    liked: boolean;
+  };
+  stats?: {
+    likes: number;
+  };
+}
+
+export interface CommentTree {
+  comments: Comment[];
+  totalCount: number;
+  hasMore: boolean;
+  cursor?: string;
+}
+
 // Interaction types
 export type InteractionType = 
   | 'like'

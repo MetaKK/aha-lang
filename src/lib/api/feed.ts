@@ -1,3 +1,11 @@
+/*
+ * @Author: meta-kk 11097094+teacher-kk@user.noreply.gitee.com
+ * @Date: 2025-10-27 11:14:15
+ * @LastEditors: meta-kk 11097094+teacher-kk@user.noreply.gitee.com
+ * @LastEditTime: 2025-10-27 11:46:23
+ * @FilePath: /aha-lang/src/lib/api/feed.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 // Feed API - Client-side implementation with Supabase integration
 import type { FeedCard, FeedResponse, FeedFilters, PostThread, ThreadPost } from '@/types/feed';
 import { createMockData } from './mock-data';
@@ -170,7 +178,7 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
     }
 
     // Get stored comments and interactions from session storage
-    const storedComments = commentStorage.getByPostId(postId);
+    const storedCommentTree = commentStorage.getCommentTree(postId);
     const storedInteractions = interactionStorage.getByPostId(postId);
     
     // Get current user's interaction state
@@ -182,7 +190,38 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
       reposted: userInteractions.some(i => i.type === 'repost'),
     };
     
-    // Generate mock replies with proper avatar URLs
+    // Helper function to convert comment tree to ThreadPost format
+    const convertCommentToThreadPost = (comment: any): ThreadPost => {
+      const replies = comment.replies?.map(convertCommentToThreadPost) || [];
+      return {
+        id: comment.id,
+        type: 'text' as const,
+        content: comment.content,
+        author: {
+          id: comment.author.id,
+          handle: comment.author.handle,
+          displayName: comment.author.displayName,
+          avatar: comment.author.avatar,
+          verified: false,
+        },
+        createdAt: comment.createdAt,
+        reply: {
+          root: { uri: postId, cid: postId },
+          parent: { uri: comment.parentId || postId, cid: comment.parentId || postId },
+        },
+        stats: {
+          replies: replies.length,
+          reposts: 0,
+          likes: 0,
+          bookmarks: 0,
+          views: 0,
+        },
+        replyCount: replies.length,
+        replies: replies.length > 0 ? replies : undefined,
+      };
+    };
+
+    // Generate mock replies with proper avatar URLs and nested structure
     const defaultReplies: ThreadPost[] = [
       {
         ...mockCards[1],
@@ -199,13 +238,61 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
           parent: { uri: post.id, cid: post.id },
         },
         stats: {
-          replies: 5,
+          replies: 2,
           reposts: 12,
           likes: 234,
           bookmarks: 45,
           views: 2340,
         },
-        replyCount: 5,
+        replyCount: 2,
+        replies: [
+          {
+            ...mockCards[3],
+            type: 'text',
+            id: `reply-${postId}-1-1`,
+            content: 'Totally agree! This is exactly what we need.',
+            createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+            author: {
+              ...mockCards[3].author,
+              avatar: mockCards[3].author.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${mockCards[3].author.id}`,
+            },
+            reply: {
+              root: { uri: post.id, cid: post.id },
+              parent: { uri: `reply-${postId}-1`, cid: `reply-${postId}-1` },
+            },
+            stats: {
+              replies: 0,
+              reposts: 0,
+              likes: 45,
+              bookmarks: 5,
+              views: 450,
+            },
+            replyCount: 0,
+          } as ThreadPost,
+          {
+            ...mockCards[4],
+            type: 'text',
+            id: `reply-${postId}-1-2`,
+            content: 'Thanks for sharing! 🙏',
+            createdAt: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
+            author: {
+              ...mockCards[4].author,
+              avatar: mockCards[4].author.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${mockCards[4].author.id}`,
+            },
+            reply: {
+              root: { uri: post.id, cid: post.id },
+              parent: { uri: `reply-${postId}-1`, cid: `reply-${postId}-1` },
+            },
+            stats: {
+              replies: 0,
+              reposts: 0,
+              likes: 23,
+              bookmarks: 2,
+              views: 230,
+            },
+            replyCount: 0,
+          } as ThreadPost,
+        ],
       } as ThreadPost,
       {
         ...mockCards[2],
@@ -222,42 +309,18 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
           parent: { uri: post.id, cid: post.id },
         },
         stats: {
-          replies: 2,
+          replies: 0,
           reposts: 5,
           likes: 89,
           bookmarks: 12,
           views: 890,
         },
-        replyCount: 2,
+        replyCount: 0,
       } as ThreadPost,
     ];
 
-    // Convert stored comments to ThreadPost format
-    const storedReplies: ThreadPost[] = storedComments.map(comment => ({
-      id: comment.id,
-      type: 'text' as const,
-      content: comment.content,
-      author: {
-        id: comment.author.id,
-        handle: comment.author.handle,
-        displayName: comment.author.displayName,
-        avatar: comment.author.avatar,
-        verified: false,
-      },
-      createdAt: comment.createdAt,
-      reply: {
-        root: { uri: postId, cid: postId },
-        parent: { uri: postId, cid: postId },
-      },
-      stats: {
-        replies: 0,
-        reposts: 0,
-        likes: 0,
-        bookmarks: 0,
-        views: 0,
-      },
-      replyCount: 0,
-    }));
+    // Convert stored comments to ThreadPost format with nested structure
+    const storedReplies: ThreadPost[] = storedCommentTree.map(convertCommentToThreadPost);
 
     // Combine default replies with stored comments
     const replies: ThreadPost[] = [...storedReplies, ...defaultReplies].sort((a, b) => 
@@ -329,7 +392,7 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
       }
     }
 
-    // Fetch replies (comments)
+    // Fetch replies (comments) with nested structure
     const { data: repliesData, error: repliesError } = await (supabase as any)
       .from('interactions')
       .select(`
@@ -345,11 +408,103 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
       .eq('target_id', postId)
       .eq('target_type', 'card')
       .eq('type', 'comment')
+      .is('parent_id', null)
       .order('created_at', { ascending: true });
 
     if (repliesError) {
       console.error('[fetchPostThread] Replies fetch error:', repliesError);
     }
+
+    // Helper function to fetch comment likes count and viewer state
+    const getCommentLikesInfo = async (commentId: string) => {
+      // Get total likes count
+      const { count: likesCount } = await (supabase as any)
+        .from('interactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('target_id', commentId)
+        .eq('target_type', 'comment')
+        .eq('type', 'like');
+
+      // Check if current user liked this comment
+      let userLiked = false;
+      if (user) {
+        const { data: userLike } = await (supabase as any)
+          .from('interactions')
+          .select('id')
+          .eq('target_id', commentId)
+          .eq('target_type', 'comment')
+          .eq('type', 'like')
+          .eq('user_id', user.id)
+          .single();
+        
+        userLiked = !!userLike;
+      }
+
+      return { likesCount: likesCount || 0, userLiked };
+    };
+
+    // Helper function to recursively fetch nested replies
+    const fetchNestedReplies = async (parentId: string, depth: number = 0, maxDepth: number = 3): Promise<ThreadPost[]> => {
+      if (depth >= maxDepth) return [];
+
+      const { data: nestedReplies } = await (supabase as any)
+        .from('interactions')
+        .select(`
+          *,
+          author:profiles!interactions_user_id_fkey (
+            id,
+            username,
+            display_name,
+            avatar_url,
+            level
+          )
+        `)
+        .eq('parent_id', parentId)
+        .eq('type', 'reply')
+        .order('created_at', { ascending: true });
+
+      if (!nestedReplies || nestedReplies.length === 0) return [];
+
+      const transformedReplies: ThreadPost[] = [];
+      for (const reply of nestedReplies) {
+        const likesInfo = await getCommentLikesInfo(reply.id);
+        const childReplies = await fetchNestedReplies(reply.id, depth + 1, maxDepth);
+        
+        transformedReplies.push({
+          id: reply.id,
+          type: 'text',
+          content: reply.content || '',
+          author: {
+            id: reply.author.id,
+            handle: reply.author.username,
+            displayName: reply.author.display_name || reply.author.username,
+            avatar: reply.author.avatar_url,
+            verified: reply.author.level >= 10,
+          },
+          stats: {
+            replies: childReplies.length,
+            reposts: 0,
+            likes: likesInfo.likesCount,
+            bookmarks: 0,
+            views: 0,
+          },
+          viewer: {
+            liked: likesInfo.userLiked,
+            reposted: false,
+            bookmarked: false,
+          },
+          createdAt: reply.created_at,
+          reply: {
+            root: { uri: postId, cid: postId },
+            parent: { uri: parentId, cid: parentId },
+          },
+          replyCount: childReplies.length,
+          replies: childReplies.length > 0 ? childReplies : undefined,
+        });
+      }
+
+      return transformedReplies;
+    };
 
     // Transform post data to FeedCard format
     const mainPost: ThreadPost = {
@@ -377,32 +532,44 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
       replyCount: postData.comments_count || 0,
     };
 
-    // Transform replies data
-    const replies: ThreadPost[] = (repliesData || []).map((reply: any) => ({
-      id: reply.id,
-      type: 'text',
-      content: reply.content || '',
-      author: {
-        id: reply.author.id,
-        handle: reply.author.username,
-        displayName: reply.author.display_name || reply.author.username,
-        avatar: reply.author.avatar_url,
-        verified: reply.author.level >= 10,
-      },
-      stats: {
-        replies: 0,
-        reposts: 0,
-        likes: 0,
-        bookmarks: 0,
-        views: 0,
-      },
-      createdAt: reply.created_at,
-      reply: {
-        root: { uri: postId, cid: postId },
-        parent: { uri: postId, cid: postId },
-      },
-      replyCount: 0,
-    }));
+    // Transform replies data with nested structure and likes info
+    const replies: ThreadPost[] = [];
+    for (const reply of (repliesData || [])) {
+      const likesInfo = await getCommentLikesInfo(reply.id);
+      const nestedReplies = await fetchNestedReplies(reply.id);
+      
+      replies.push({
+        id: reply.id,
+        type: 'text',
+        content: reply.content || '',
+        author: {
+          id: reply.author.id,
+          handle: reply.author.username,
+          displayName: reply.author.display_name || reply.author.username,
+          avatar: reply.author.avatar_url,
+          verified: reply.author.level >= 10,
+        },
+        stats: {
+          replies: nestedReplies.length,
+          reposts: 0,
+          likes: likesInfo.likesCount,
+          bookmarks: 0,
+          views: 0,
+        },
+        viewer: {
+          liked: likesInfo.userLiked,
+          reposted: false,
+          bookmarked: false,
+        },
+        createdAt: reply.created_at,
+        reply: {
+          root: { uri: postId, cid: postId },
+          parent: { uri: postId, cid: postId },
+        },
+        replyCount: nestedReplies.length,
+        replies: nestedReplies.length > 0 ? nestedReplies : undefined,
+      });
+    }
 
 
     return {
@@ -420,7 +587,8 @@ export async function fetchPostThread(postId: string): Promise<PostThread> {
  */
 export async function createComment(
   postId: string,
-  content: string
+  content: string,
+  parentId?: string
 ): Promise<void> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300));
@@ -440,6 +608,7 @@ export async function createComment(
       postId,
       content,
       author: mockUser,
+      parentId,
     });
     
     return;
@@ -458,16 +627,21 @@ export async function createComment(
       throw new Error('User not authenticated');
     }
 
+    // Determine if this is a reply or a top-level comment
+    const interactionType = parentId ? 'reply' : 'comment';
+    const targetId = parentId || postId;
+    const targetType = parentId ? 'comment' : 'card';
 
-    // Insert comment interaction
+    // Insert comment/reply interaction
     const { error } = await (supabase as any)
       .from('interactions')
       .insert({
         user_id: user.id,
-        target_id: postId,
-        target_type: 'card',
-        type: 'comment',
+        target_id: targetId,
+        target_type: targetType,
+        type: interactionType,
         content: content,
+        parent_id: parentId || null,
       });
 
     if (error) {
@@ -475,20 +649,177 @@ export async function createComment(
       throw error;
     }
 
-    // Update comment count on the post
-    const { error: updateError } = await (supabase as any)
-      .from('feed_cards')
-      .update({
-        comments_count: (supabase as any).raw('comments_count + 1')
-      })
-      .eq('id', postId);
+    // Update comment count on the post (only for top-level comments)
+    if (!parentId) {
+      const { error: updateError } = await (supabase as any)
+        .from('feed_cards')
+        .update({
+          comments_count: (supabase as any).raw('comments_count + 1')
+        })
+        .eq('id', postId);
 
-    if (updateError) {
-      console.error('[createComment] Update count error:', updateError);
+      if (updateError) {
+        console.error('[createComment] Update count error:', updateError);
+      }
     }
 
   } catch (error) {
     console.error(`Failed to create comment:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Create a reply to a comment
+ */
+export async function createReply(
+  commentId: string,
+  content: string
+): Promise<void> {
+  // Get the parent comment to find the post ID
+  if (MOCK_DATA_ENABLED) {
+    const mockUser = {
+      id: 'currentUser',
+      handle: 'you',
+      displayName: 'You',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=you',
+    };
+    
+    commentStorage.add({
+      postId: commentId, // In mock mode, we'll use commentId as postId
+      content,
+      author: mockUser,
+      parentId: commentId,
+    });
+    
+    return;
+  }
+
+  // Supabase implementation
+  try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Get parent comment to find the post ID
+    const { data: parentComment, error: parentError } = await (supabase as any)
+      .from('interactions')
+      .select('target_id')
+      .eq('id', commentId)
+      .single();
+
+    if (parentError || !parentComment) {
+      throw new Error('Parent comment not found');
+    }
+
+    // Insert reply
+    const { error } = await (supabase as any)
+      .from('interactions')
+      .insert({
+        user_id: user.id,
+        target_id: commentId, // Reply targets the comment, not the post
+        target_type: 'comment',
+        type: 'reply',
+        content: content,
+        parent_id: commentId,
+      });
+
+    if (error) {
+      console.error('[createReply] Error:', error);
+      throw error;
+    }
+
+  } catch (error) {
+    console.error(`Failed to create reply:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Interact with a comment (like/unlike)
+ */
+export async function interactWithComment(
+  commentId: string,
+  action: 'like' | 'unlike'
+): Promise<void> {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  if (MOCK_DATA_ENABLED) {
+    const mockUserId = 'currentUser';
+    
+    if (action === 'like') {
+      interactionStorage.add({
+        postId: commentId, // Using commentId as postId in mock mode
+        type: 'like',
+        userId: mockUserId,
+      });
+    } else {
+      // Remove like
+      const interactions = interactionStorage.getAll();
+      const filtered = interactions.filter(
+        i => !(i.postId === commentId && i.type === 'like' && i.userId === mockUserId)
+      );
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('user_interactions', JSON.stringify(filtered));
+      }
+    }
+    return;
+  }
+
+  // Supabase implementation
+  try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    if (action === 'like') {
+      // Add like to comment
+      const { error } = await (supabase as any)
+        .from('interactions')
+        .insert({
+          user_id: user.id,
+          target_id: commentId,
+          target_type: 'comment',
+          type: 'like',
+        });
+
+      if (error) {
+        console.error('[interactWithComment] Like error:', error);
+        throw error;
+      }
+    } else {
+      // Remove like from comment
+      const { error } = await (supabase as any)
+        .from('interactions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('target_id', commentId)
+        .eq('target_type', 'comment')
+        .eq('type', 'like');
+
+      if (error) {
+        console.error('[interactWithComment] Unlike error:', error);
+        throw error;
+      }
+    }
+
+  } catch (error) {
+    console.error(`Failed to ${action} comment:`, error);
     throw error;
   }
 }
