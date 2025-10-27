@@ -19,14 +19,36 @@ import { cn } from '@/lib/utils';
 import type { NovelContent, NovelChapter } from '@/lib/api/novel-mock-data';
 
 interface NovelReaderProps {
-  novel: NovelContent;
-  chapter: NovelChapter;
-  onClose: () => void;
-  onComplete: () => void;
+  readonly novel: NovelContent;
+  readonly chapter: NovelChapter;
+  readonly onClose: () => void;
+  readonly onComplete: () => void;
+}
+
+// 主题类型定义
+interface ThemeColors {
+  readonly primary: string;
+  readonly secondary: string;
+  readonly accent: string;
+  readonly surface: string;
+  readonly text: string;
+}
+
+interface ReadingTheme {
+  readonly id: string;
+  readonly name: string;
+  readonly background: string;
+  readonly text: string;
+  readonly secondary: string;
+  readonly accent: string;
+  readonly firstLetter: string;
+  readonly glow: string;
+  readonly icon: React.ComponentType<{ className?: string }>;
+  readonly colors: ThemeColors;
 }
 
 // 阅读主题配置 - Pixar动画风格 + 科技感
-const READING_THEMES = {
+const READING_THEMES: Record<string, ReadingTheme> = {
   light: {
     id: 'light',
     name: 'Light',
@@ -90,8 +112,16 @@ const READING_THEMES = {
 
 type ThemeId = keyof typeof READING_THEMES;
 
+// 字体配置类型定义
+interface FontSize {
+  readonly id: string;
+  readonly name: string;
+  readonly size: string;
+  readonly lineHeight: string;
+}
+
 // 字体配置 - 精致4档选择
-const FONT_SIZES = [
+const FONT_SIZES: readonly FontSize[] = [
   { id: 'xs', name: 'Tiny', size: 'text-base', lineHeight: 'leading-relaxed' },
   { id: 'sm', name: 'Small', size: 'text-lg', lineHeight: 'leading-relaxed' },
   { id: 'md', name: 'Medium', size: 'text-xl', lineHeight: 'leading-loose' },
@@ -99,15 +129,22 @@ const FONT_SIZES = [
 ] as const;
 
 function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) {
+  // 常量定义
+  const DEFAULT_FONT_SIZE_INDEX = 2; // Medium
+  const UI_HIDE_DELAY = 3000; // 3秒
+  const COMPLETION_THRESHOLD = 0.95; // 95%滚动触发完成
+
+  // 状态管理
   const [theme, setTheme] = useState<ThemeId>('light');
-  const [fontSize, setFontSize] = useState(2); // md
-  const [showSettings, setShowSettings] = useState(false);
-  const [showUI, setShowUI] = useState(true);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [showCompleteCard, setShowCompleteCard] = useState(false);
-  const [hasReachedEnd, setHasReachedEnd] = useState(false);
+  const [fontSize, setFontSize] = useState<number>(DEFAULT_FONT_SIZE_INDEX);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [showUI, setShowUI] = useState<boolean>(true);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+  const [showCompleteCard, setShowCompleteCard] = useState<boolean>(false);
+  const [hasReachedEnd, setHasReachedEnd] = useState<boolean>(false);
   const [likedParagraphs, setLikedParagraphs] = useState<Set<number>>(new Set());
   
+  // Refs
   const contentRef = useRef<HTMLDivElement>(null);
   const uiTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const { scrollYProgress } = useScroll({ container: contentRef });
@@ -133,7 +170,7 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
       if (!showSettings) {
         setShowUI(false);
       }
-    }, 3000);
+    }, UI_HIDE_DELAY);
   }, [showSettings]);
 
   // 检测滚动到底部
@@ -143,8 +180,8 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
     const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
     const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
     
-    // 滚动到95%时显示完成卡片
-    if (scrollPercentage >= 0.95 && !hasReachedEnd) {
+    // 滚动到阈值时显示完成卡片
+    if (scrollPercentage >= COMPLETION_THRESHOLD && !hasReachedEnd) {
       setHasReachedEnd(true);
       setShowCompleteCard(true);
     }
@@ -190,7 +227,7 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
   };
 
   // Disney风格的动画变体
-  const paragraphVariants = {
+  const paragraphVariants: AnimationVariants = {
     hidden: { 
       opacity: 0, 
       y: 40,
@@ -326,37 +363,7 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
                 : 'bg-white/95 border-gray-200'
             )}
           >
-            {/* 设置面板粒子效果 */}
-            <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-              {[...Array(6)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-1 h-1 rounded-full bg-primary/20"
-                  animate={{
-                    x: [
-                      Math.random() * 240 + 'px',
-                      Math.random() * 240 + 'px',
-                      Math.random() * 240 + 'px',
-                    ],
-                    y: [
-                      Math.random() * 200 + 'px',
-                      Math.random() * 200 + 'px',
-                      Math.random() * 200 + 'px',
-                    ],
-                    scale: [0, 1, 0],
-                    opacity: [0, 0.6, 0],
-                  }}
-                  transition={{
-                    duration: 4 + Math.random() * 2,
-                    repeat: Infinity,
-                    delay: i * 0.3,
-                    ease: 'easeInOut',
-                  }}
-                />
-              ))}
-            </div>
-            
-            <div className="p-5 space-y-5 relative z-10">
+            <div className="p-5 space-y-5">
               {/* 主题选择 - Apple风格图标卡片 */}
               <div>
                 <div className="grid grid-cols-3 gap-3">
@@ -759,15 +766,37 @@ function NovelReader({ novel, chapter, onClose, onComplete }: NovelReaderProps) 
   );
 }
 
+// 动画变体类型定义
+interface AnimationVariants {
+  readonly hidden: {
+    readonly opacity: number;
+    readonly y: number;
+    readonly scale: number;
+  };
+  readonly visible: (i: number) => {
+    readonly opacity: number;
+    readonly y: number;
+    readonly scale: number;
+    readonly transition: {
+      readonly type: string;
+      readonly stiffness: number;
+      readonly damping: number;
+      readonly delay: number;
+      readonly duration: number;
+    };
+  };
+  readonly [key: string]: any; // 兼容Framer Motion的Variants类型
+}
+
 // 魔法段落组件 - Disney × Apple 设计
 interface ParagraphWithMagicProps {
-  paragraph: string;
-  index: number;
-  currentFont: typeof FONT_SIZES[number];
-  currentTheme: typeof READING_THEMES[ThemeId];
-  isLiked: boolean;
-  onLike: () => void;
-  variants: any;
+  readonly paragraph: string;
+  readonly index: number;
+  readonly currentFont: FontSize;
+  readonly currentTheme: ReadingTheme;
+  readonly isLiked: boolean;
+  readonly onLike: () => void;
+  readonly variants: AnimationVariants;
 }
 
 function ParagraphWithMagic({ 
@@ -779,6 +808,13 @@ function ParagraphWithMagic({
   onLike,
   variants 
 }: ParagraphWithMagicProps) {
+  // 常量定义
+  const FIRST_LETTER_SIZE = 'text-6xl';
+  const OTHER_LETTER_SIZE = 'text-2xl';
+  const BLUR_INTENSITY = 'blur-md';
+  const OPACITY_LEVEL = 'opacity-20';
+  
+  // Refs
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
@@ -814,7 +850,9 @@ function ParagraphWithMagic({
               {/* 首字母光晕 */}
               <div
                 className={cn(
-                  'absolute -inset-2 rounded-lg blur-md opacity-20',
+                  'absolute -inset-2 rounded-lg',
+                  BLUR_INTENSITY,
+                  OPACITY_LEVEL,
                   'bg-gradient-to-br',
                   currentTheme.firstLetter
                 )}
@@ -823,7 +861,8 @@ function ParagraphWithMagic({
               {/* 首字母文字 */}
               <div
                 className={cn(
-                  'relative text-6xl font-black leading-none',
+                  'relative font-black leading-none',
+                  FIRST_LETTER_SIZE,
                   'bg-gradient-to-br bg-clip-text text-transparent',
                   'select-none'
                 )}
@@ -860,7 +899,10 @@ function ParagraphWithMagic({
             )}
           >
             <span
-              className="text-2xl font-bold mr-1 inline-block bg-gradient-to-br bg-clip-text text-transparent"
+              className={cn(
+                'font-bold mr-1 inline-block bg-gradient-to-br bg-clip-text text-transparent',
+                OTHER_LETTER_SIZE
+              )}
               style={{
                 backgroundImage: `linear-gradient(135deg, ${currentTheme.colors.primary}, ${currentTheme.colors.secondary})`,
                 WebkitBackgroundClip: 'text',
