@@ -81,7 +81,7 @@ export interface QuestCard extends BaseCard {
     tags: string[];
     language: string;
     estimatedTime?: string; // e.g., "30 min"
-    questType?: 'vocabulary' | 'grammar' | 'comprehension' | 'speaking' | 'writing';
+    questType?: 'vocabulary' | 'grammar' | 'comprehension' | 'speaking' | 'writing' | 'multi-chapter';
   };
 }
 

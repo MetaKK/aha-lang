@@ -365,6 +365,67 @@ Only return the message text, nothing else.`;
   }
 
   /**
+   * 生成最终沉浸式反馈
+   * 为多章节Quest生成具有10倍沉浸感的主角反馈
+   */
+  async generateFinalImmersiveFeedback(
+    quest: { title: string; novel: { title: string; author: string; excerpt: string } },
+    finalScore: number,
+    averageScore: number,
+    passed: boolean
+  ): Promise<string> {
+    const prompt = `You are Harry Potter, writing a personal letter to a student who has just completed a magical journey through your story. This is the final, most important moment - you need to be incredibly immersive and personal.
+
+Quest Details:
+- Quest: "${quest.title}"
+- Final Score: ${finalScore}/100
+- Average Score: ${averageScore.toFixed(1)}/100
+- Status: ${passed ? 'PASSED' : 'NOT PASSED'}
+- Chapters Completed: 3
+
+Write a deeply personal, immersive letter from Harry Potter to the student. This should feel like Harry is speaking directly to them, as if they were a real friend who just went on this journey with him.
+
+Requirements:
+1. Write in Harry's voice - warm, humble, brave, and encouraging
+2. Reference specific moments from the chapters they just experienced
+3. Make it feel like Harry personally witnessed their journey
+4. Be incredibly encouraging whether they passed or not
+5. Reference the magical world and Hogwarts
+6. Make it feel like a real friendship has been formed
+7. Keep it between 150-200 words
+8. End with a magical flourish that only Harry could write
+9. Use simple, A2-level English but make it emotionally powerful
+10. Make the student feel like they've truly become part of the Harry Potter world
+
+Write the letter as if you're Harry Potter himself, sitting in the Gryffindor common room, writing to a dear friend who just completed an incredible journey.`;
+
+    try {
+      const response = await this.makeApiRequest(prompt, { stream: false });
+      const content = await response.text();
+      return this.cleanResponseText(content);
+    } catch (error) {
+      console.error('Failed to generate final immersive feedback:', error);
+      // 降级到通用反馈
+      return `Dear Friend,
+
+Congratulations on completing this magical journey! You've shown incredible courage and determination, just like a true Gryffindor. 
+
+I know how challenging it can be to step into a new world, especially one as magical as ours. But you did it! You faced the Dursleys, discovered your magical abilities, and even met Hagrid. That takes real bravery.
+
+Whether you passed or not, you've learned something valuable. Every great wizard started somewhere, and every challenge makes us stronger. I should know - I've faced my fair share of difficult moments!
+
+Remember, magic isn't just about spells and potions. It's about believing in yourself, helping others, and never giving up. You've shown all of these qualities today.
+
+Keep practicing, keep believing, and who knows? Maybe one day we'll meet at Hogwarts!
+
+With warmest regards and magical wishes,
+Harry Potter
+
+P.S. - The sorting hat would definitely put you in Gryffindor! 🦁✨`;
+    }
+  }
+
+  /**
    * 验证场景数据
    */
   private validateSceneData(data: SceneGenerationResponse): SceneInfo {

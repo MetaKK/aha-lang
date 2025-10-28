@@ -131,6 +131,15 @@ const QuestCard = memo(function QuestCard({
                       L{novel.difficulty}
                     </div>
                   </div>
+                  
+                  {/* Multi-Chapter Badge */}
+                  {novel.questType === 'multi-chapter' && (
+                    <div className="absolute top-1 left-1">
+                      <div className="px-1.5 py-0.5 rounded-[4px] text-[10px] font-bold backdrop-blur-xl bg-purple-500/90 text-white shadow-sm">
+                        Multi
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -145,6 +154,24 @@ const QuestCard = memo(function QuestCard({
                 <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
                   {novel.excerpt}
                 </p>
+
+                {/* Multi-Chapter Info */}
+                {novel.questType === 'multi-chapter' && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                      <BookOpenIcon className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                      <span className="text-[11px] font-medium text-purple-700 dark:text-purple-300">
+                        {novel.totalChapters} Chapters
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                      <SparklesIcon className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                      <span className="text-[11px] font-medium text-blue-700 dark:text-blue-300">
+                        Interactive
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Meta Info */}
                 <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
@@ -183,7 +210,10 @@ const QuestCard = memo(function QuestCard({
             {/* Start Learning Button */}
             <div className="px-3 pb-3">
               <Link 
-                href={`/novel/${novel.id}`}
+                href={novel.questType === 'multi-chapter' 
+                  ? `/quest/${novel.id}/multi-chapter`
+                  : `/novel/${novel.id}`
+                }
                 onClick={(e) => e.stopPropagation()}
               >
                 <motion.div
@@ -200,7 +230,9 @@ const QuestCard = memo(function QuestCard({
                   )}
                 >
                   <SparklesIcon className="w-4 h-4" />
-                  <span>Start Reading</span>
+                  <span>
+                    {novel.questType === 'multi-chapter' ? 'Start Quest' : 'Start Reading'}
+                  </span>
                 </motion.div>
               </Link>
             </div>

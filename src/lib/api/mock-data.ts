@@ -13,6 +13,37 @@ export const createMockData = (): FeedCard[] => {
   const baseTime = Date.now();
 
   return [
+    // Multi-Chapter Quest Card - Harry Potter
+    {
+      id: 'quest-harry-potter-multi-chapter',
+      type: 'novel',
+      author: {
+        id: 'author-hp-quest',
+        handle: 'ahalearn',
+        displayName: 'Aha Learning',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ahalearn',
+        verified: true,
+        badges: ['verified', 'organization'],
+      },
+      content: '🧙‍♂️ NEW: Multi-Chapter Harry Potter Quest! Experience the magical world through 3 immersive chapters. Read, practice conversations, and get personalized feedback from Harry himself! Perfect for A2 learners.',
+      createdAt: new Date(baseTime - 1000 * 60 * 2).toISOString(),
+      stats: { replies: 89, reposts: 234, likes: 1205, bookmarks: 456, views: 5600 },
+      viewer: { liked: false, reposted: false, bookmarked: false },
+      novel: {
+        id: 'harry-potter-multi-chapter-a2',
+        title: 'Harry Potter: The Boy Who Lived',
+        excerpt: 'Harry Potter has never been the star of a Quidditch team, scoring points while riding a broom far above the ground. He knows no spells, has never helped to hatch a dragon, and has never worn a cloak of invisibility...',
+        coverImage: 'https://images.unsplash.com/photo-1600189261867-30e5ffe7b8da?w=400&h=600&fit=crop',
+        difficulty: 2,
+        totalChapters: 3,
+        currentChapter: 1,
+        tags: ['Fantasy', 'Magic', 'Adventure', 'Multi-Chapter'],
+        language: 'English',
+        estimatedTime: '45 min',
+        questType: 'multi-chapter',
+      },
+    },
+
     // Quest Card - The Visitors' Zoo
     {
       id: 'quest-novel-001',
