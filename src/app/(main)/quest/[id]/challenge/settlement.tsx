@@ -23,7 +23,7 @@ async function generateCharacterFeedback(
 ): Promise<string> {
   const prompt = `You are writing settlement feedback for an English learning challenge in the voice of the protagonist from the novel "${novel.title}" by ${novel.author}.
 
-Novel Synopsis: ${novel.description}
+Novel Synopsis: ${novel.excerpt}
 
 Challenge Results:
 - Score: ${score}/100
