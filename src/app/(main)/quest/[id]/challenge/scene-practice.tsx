@@ -169,30 +169,35 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
     
     setIsGeneratingScene(true);
     try {
-      // 基于小说内容生成精彩场景 - 优化版prompt
-      const scenePrompt = `Act as a **conversation scene designer** that creates memorable English dialogue challenges from "${novel.title}" by ${novel.author}.
+      // 沉浸式角色扮演场景生成 - 让用户完全沉浸在小说世界中
+      const scenePrompt = `You are the **narrator and scene director** of "${novel.title}" by ${novel.author}. Create an immersive conversation scene that makes the student feel like they ARE a character in the story.
 
 **Story Context:** ${novel.excerpt}
 
-**Design Requirements:**
-- Create a **memorable, emotionally engaging** conversation scene
-- Choose a **pivotal moment** from the story that leaves a lasting impression
-- Make the dialogue **dramatic, meaningful, or emotionally charged**
-- Ensure the scene is **visually vivid** and **emotionally resonant**
+**IMMERSION REQUIREMENTS:**
+- **Make the student feel they ARE living this moment in the novel**
+- **Create emotional stakes that feel real and urgent**
+- **Use vivid, sensory details that bring the scene to life**
+- **Make the conversation feel natural and spontaneous**
+- **Focus on the emotional journey, not language learning**
 
-**Difficulty:** A2-B1 level English (intermediate learners)
+**Scene Design:**
+- Choose a **pivotal, emotionally charged moment** from the actual novel
+- Create **immediate emotional stakes** - what's at risk right now?
+- Use **vivid sensory details** - what do they see, hear, feel, smell?
+- Make it feel **urgent and real** - like their life depends on this conversation
 
 **Return this exact JSON structure:**
 
 {
-  "title": "[Scene Title - Make it dramatic and memorable]",
-  "description": "[Brief description of the emotional impact]",
-  "context": "[Vivid scene setting with emotional stakes - what makes this moment special?]",
-  "goal": "[Specific conversation goal that creates tension or emotional connection]",
+  "title": "[Dramatic scene title that captures the emotional moment]",
+  "description": "[Brief emotional hook - what makes this moment unforgettable?]",
+  "context": "[Immersive scene setting with emotional urgency - make them feel they're THERE]",
+  "goal": "[Natural conversation goal that feels urgent and personal]",
   "difficulty": "A2"
 }
 
-**Key Focus:** Create a scene that students will remember - make it emotionally engaging, visually striking, or dramatically significant.
+**Key Focus:** Make them forget they're learning English. Make them feel they're living this moment in the novel.
 
 JSON:`;
 
@@ -299,8 +304,8 @@ JSON:`;
         .map(m => `${m.role === 'assistant' ? 'AI' : 'Student'}: ${m.content}`)
         .join('\n');
 
-      // 智能评估系统 - 优化版prompt
-      const evaluationPrompt = `Act as a **conversation evaluator** that provides fair, encouraging feedback for English learners.
+      // 沉浸式角色扮演评估系统 - 让AI完全沉浸在小说角色中
+      const evaluationPrompt = `You are **living as a character from "${novel.title}"** in this exact moment. The student is another character in the scene. Have a natural, immersive conversation while subtly evaluating their English behind the scenes.
 
 **Student Response:** "${userMessage.content}"
 **Scene:** ${scene.title}
@@ -308,20 +313,26 @@ JSON:`;
 **Goal:** ${scene.goal}
 **Conversation History:** ${conversationContext}
 
-**Evaluation Criteria:**
-- **Communication (0-100):** Did the student express their thoughts clearly and appropriately?
-- **Accuracy (0-100):** Grammar, vocabulary, and language structure correctness
-- **Scenario (0-100):** How well did the response fit the dramatic scene context?
-- **Fluency (0-100):** Natural flow and confidence in expression
+**ROLE-PLAY REQUIREMENTS:**
+- **You ARE the character from the novel - respond authentically and in-character**
+- **Continue the conversation naturally - never break character**
+- **Make it feel like a real, urgent conversation happening right now**
+- **Use emotional responses that fit the character and situation**
+- **Never mention evaluation, scoring, learning, or English practice**
+- **Stay completely immersed in the novel's world**
+
+**HIDDEN EVALUATION (Student never sees this):**
+- **Communication (0-100):** Did they express themselves clearly and appropriately?
+- **Accuracy (0-100):** Grammar and vocabulary correctness
+- **Scenario (0-100):** How well did they stay in character and respond to the situation?
+- **Fluency (0-100):** Natural flow and confidence in their response
 
 **Scoring Guidelines:**
-- **85-100:** Excellent - exceeds expectations
-- **70-84:** Good - meets expectations with minor issues
-- **55-69:** Fair - shows effort but needs improvement
-- **40-54:** Needs work - significant issues but shows attempt
+- **85-100:** Excellent - exceeded expectations
+- **70-84:** Good - met expectations with minor issues
+- **55-69:** Fair - showed effort but needs improvement
+- **40-54:** Needs work - significant issues but showed attempt
 - **0-39:** Poor - major problems or inappropriate response
-
-**Feedback Style:** Encouraging, specific, and actionable. Focus on what they did well first.
 
 **Return this exact JSON structure:**
 
@@ -332,12 +343,12 @@ JSON:`;
     "scenario": [score],
     "fluency": [score]
   },
-  "feedback": "[Encouraging feedback with specific praise and gentle suggestions]",
-  "response": "[AI's natural, engaging response that continues the dramatic scene]",
+  "feedback": "[Brief, encouraging note - keep it subtle and natural]",
+  "response": "[Your character's authentic response that continues the scene naturally]",
   "hasChinese": [true/false]
 }
 
-**Key Focus:** Be fair but encouraging. Reward effort and creativity. Make the feedback memorable and helpful.
+**Key Focus:** Be the character. Make it feel like a real conversation. Evaluation happens invisibly behind the scenes.
 
 JSON:`;
 
