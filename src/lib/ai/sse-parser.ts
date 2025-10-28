@@ -54,9 +54,9 @@ export function parseSSEData(line: string): ParsedSSEData | null {
     }
     
     // 直接内容格式: { content: "..." }
-    if (parsed.content) {
+    if (parsed.content !== undefined) {
       return {
-        content: parsed.content,
+        content: String(parsed.content),
         role: parsed.role,
         finish_reason: parsed.finish_reason
       };
@@ -70,17 +70,17 @@ export function parseSSEData(line: string): ParsedSSEData | null {
     }
     
     // 其他格式，尝试提取可能的文本内容
-    if (parsed.text) {
+    if (parsed.text !== undefined) {
       return {
-        content: parsed.text,
+        content: String(parsed.text),
         role: parsed.role,
         finish_reason: parsed.finish_reason
       };
     }
     
-    if (parsed.message) {
+    if (parsed.message !== undefined) {
       return {
-        content: parsed.message,
+        content: String(parsed.message),
         role: parsed.role,
         finish_reason: parsed.finish_reason
       };
@@ -106,8 +106,8 @@ export function processSSEStream(
 ): void {
   const text = new TextDecoder().decode(chunk);
   
-  // 检查是否是SSE格式（包含 "data: " 或 ":" 分隔符）
-  const isSSEFormat = text.includes('data: ') || (text.includes(':') && !text.trim().includes(' '));
+  // 检查是否是SSE格式（包含 "data: " 前缀）
+  const isSSEFormat = text.includes('data: ');
   
   if (!isSSEFormat) {
     // 纯文本流格式（AI SDK v5 toTextStreamResponse）
@@ -117,13 +117,14 @@ export function processSSEStream(
     return;
   }
   
-  // SSE格式处理
+  // SSE格式处理 - 按行分割并处理
   const lines = text.split('\n');
   
   for (const line of lines) {
-    if (line.trim() === '') continue;
+    const trimmedLine = line.trim();
+    if (trimmedLine === '') continue;
     
-    const parsed = parseSSEData(line);
+    const parsed = parseSSEData(trimmedLine);
     
     if (parsed) {
       if (parsed.isDone) {
@@ -131,7 +132,7 @@ export function processSSEStream(
         continue;
       }
       
-      if (parsed.content) {
+      if (parsed.content && parsed.content.trim()) {
         onContent(parsed.content);
       }
     }

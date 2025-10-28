@@ -147,6 +147,9 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  // 防止初始化重复触发（包括React严格模式的双调用）
+  const hasInitializedRef = useRef(false);
+  const initInFlightRef = useRef<Promise<void> | null>(null);
 
   // 自动滚动
   const scrollToBottom = useCallback((immediate = false) => {
@@ -163,10 +166,14 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
     scrollToBottom();
   }, [messages, currentAIMessage, scrollToBottom]);
 
-  // 生成场景 - 基于小说内容
-  const generateScene = useCallback(async () => {
-    if (isGeneratingScene) return;
-    
+  // 生成场景 - 基于小说内容（允许传入覆盖的 API Key 以避免首次渲染竞态）
+  const generateScene = useCallback(async (overrideApiKey?: string) => {
+    // 去重：若已有初始化中的Promise，直接复用，避免重复发起
+    if (initInFlightRef.current) {
+      await initInFlightRef.current;
+      return;
+    }
+
     setIsGeneratingScene(true);
     try {
       // 沉浸式角色扮演场景生成 - 让用户完全沉浸在小说世界中
@@ -205,7 +212,7 @@ JSON:`;
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(apiKey && { 'X-API-Key': apiKey }),
+          ...((overrideApiKey ?? apiKey) && { 'X-API-Key': (overrideApiKey ?? apiKey) }),
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: scenePrompt }],
@@ -241,7 +248,7 @@ JSON:`;
       };
       
       // 使用AI生成动态开场白
-      const aiGreeting = await generateDynamicGreeting(sceneData, apiKey);
+      const aiGreeting = await generateDynamicGreeting(sceneData, (overrideApiKey ?? apiKey));
 
       setScene(sceneData);
       setMessages([initialMessage, aiGreeting]);
@@ -255,20 +262,21 @@ JSON:`;
       setIsGeneratingScene(false);
       onBack();
     }
-  }, [novel, apiKey, isGeneratingScene, onBack]);
+  }, [novel, apiKey, onBack]);
 
-  // 初始化场景
+  // 初始化场景（严格模式和依赖变化下也只执行一次）
   useEffect(() => {
-    // 从 sessionStorage 获取 API Key（如果有）
-    const savedKey = sessionStorage.getItem('api_key_openai');
-    if (savedKey) {
-      setApiKey(savedKey);
-    }
-    
-    if (!scene && !isGeneratingScene) {
-      generateScene();
-    }
-  }, [scene, isGeneratingScene, generateScene]);
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
+    const savedKey = sessionStorage.getItem('api_key_openai') || undefined;
+    if (savedKey) setApiKey(savedKey);
+
+    const initPromise = generateScene(savedKey);
+    initInFlightRef.current = Promise.resolve(initPromise).finally(() => {
+      initInFlightRef.current = null;
+    }) as Promise<void>;
+  }, [generateScene]);
 
   // 提交用户消息
   const handleSubmit = useCallback(async () => {

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { TrophyIcon, FireIcon, CheckCircleIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { processSSEStream } from "@/lib/ai/sse-parser";
 import type { NovelContent } from "@/lib/api/novel-mock-data";
 
 interface SettlementProps {
@@ -64,11 +65,17 @@ Only return the message text, nothing else.`;
     let fullText = "";
 
     if (reader) {
-      const decoder = new TextDecoder();
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        fullText += decoder.decode(value);
+
+        processSSEStream(
+          value,
+          (content: string) => {
+            fullText += content;
+          },
+          () => {}
+        );
       }
     }
 
