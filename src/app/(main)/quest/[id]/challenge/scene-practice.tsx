@@ -1,155 +1,43 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, SparklesIcon, TrophyIcon, Target, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AIInputWarm } from "@/components/ai/ai-input-warm";
-import { processSSEStream } from "@/lib/ai/sse-parser";
-import { parseAIJson, safeParseAIJson } from '@/lib/utils/json-parser';
+import { SceneService } from "@/services/scene.service";
+import { useSceneState } from "@/hooks/use-scene-state";
+import { useTypewriter } from "@/hooks/use-typewriter";
+import { 
+  calculateFinalTurnScore, 
+  calculateNewTotalScore, 
+  calculateScoreChange,
+  hasPassed 
+} from "@/utils/score-calculator";
+import { SCENE_CONFIG } from "@/config/scene";
+import type { ScenePracticeProps, Message } from "@/types/scene";
 import type { NovelContent } from "@/lib/api/novel-mock-data";
 
-// 评分维度
-interface ScoreDimensions {
-  communication: number;  // 交际效果 (30%)
-  accuracy: number;      // 语言准确性 (25%)
-  scenario: number;      // 场景掌握 (25%)
-  fluency: number;       // 对话流畅度 (20%)
-}
-
-// 对话消息
-interface Message {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp: Date;
-  score?: ScoreDimensions;
-  feedback?: string;
-}
-
-// 场景信息
-interface SceneInfo {
-  title: string;
-  description: string;
-  context: string;
-  goal: string;
-  difficulty: "A2" | "B1";
-}
-
-const MAX_TURNS = 5;  // 5轮对话
-const PASS_SCORE = 80;
-const MIN_TURNS = 5; // 必须完成5轮才能结束
-
-interface ScenePracticeProps {
-  novel: NovelContent;
-  onComplete: (score: number, passed: boolean) => void;
-  onBack: () => void;
-}
-
-// 使用AI生成动态开场白
-async function generateDynamicGreeting(scene: SceneInfo, apiKey?: string): Promise<Message> {
-  const greetingPrompt = `Create a natural opening line for an English conversation scenario.
-
-**SCENARIO:**
-Title: ${scene.title}
-Context: ${scene.context}
-Goal: ${scene.goal}
-
-**REQUIREMENTS:**
-- Natural, conversational opening line
-- Appropriate for A2-B1 level learners
-- Under 20 words
-- Invites student response
-- Authentic to scenario context
-
-**CRITICAL FORMAT REQUIREMENTS:**
-- Return ONLY the opening line text
-- No explanations, no instructions
-- No quotes around the text
-- No additional formatting
-- Just the natural opening line
-
-Generate opening line:`;
-
-  try {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(apiKey && { 'X-API-Key': apiKey }),
-      },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: greetingPrompt }],
-        model: 'gpt-4o-mini',
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to generate greeting');
-    }
-
-    const reader = response.body?.getReader();
-    let fullText = "";
-
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        processSSEStream(
-          value,
-          (content: string) => {
-            fullText += content;
-          },
-          () => {}
-        );
-      }
-    }
-
-    // 清理响应文本
-    let cleanText = fullText.trim();
-    cleanText = cleanText.replace(/^```\s*/g, '').replace(/\s*```$/g, '');
-    cleanText = cleanText.replace(/^["']|["']$/g, ''); // 移除可能的引号
-
-    return {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: cleanText,
-      timestamp: new Date(),
-    };
-  } catch (error) {
-    console.error('Failed to generate dynamic greeting:', error);
-    // 降级到简单的默认开场白
-    return {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: "Hello! How can I help you today?",
-      timestamp: new Date(),
-    };
-  }
-}
+// 创建场景服务实例
+const createSceneService = (apiKey?: string) => new SceneService({ apiKey });
 
 export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps) {
   const router = useRouter();
-  const [scene, setScene] = useState<SceneInfo | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [currentTurn, setCurrentTurn] = useState(0);
-  const [totalScore, setTotalScore] = useState(0);
-  const [scoreChange, setScoreChange] = useState<number | null>(null);
-  const [turnScores, setTurnScores] = useState<number[]>([]);
-  const [isGeneratingScene, setIsGeneratingScene] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [currentAIMessage, setCurrentAIMessage] = useState("");
-  const [isFinished, setIsFinished] = useState(false);
-  const [apiKey, setApiKey] = useState<string | undefined>();
+  const { state, actions, computed } = useSceneState();
   
+  // Refs for DOM manipulation
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  // 防止初始化重复触发（包括React严格模式的双调用）
+  
+  // 防止初始化重复触发的refs
   const hasInitializedRef = useRef(false);
   const initInFlightRef = useRef<Promise<void> | null>(null);
+  
+  // 创建场景服务实例
+  const sceneService = useMemo(() => createSceneService(state.apiKey), [state.apiKey]);
+  
+  // 打字机效果
+  const { typeText, isTyping, stopTyping } = useTypewriter(actions.setCurrentAIMessage);
 
   // 自动滚动
   const scrollToBottom = useCallback((immediate = false) => {
@@ -162,11 +50,12 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
     messagesEndRef.current?.scrollIntoView({ behavior: immediate ? 'auto' : 'smooth' });
   }, []);
 
+  // 监听消息变化，自动滚动
   useEffect(() => {
     scrollToBottom();
-  }, [messages, currentAIMessage, scrollToBottom]);
+  }, [state.messages, state.currentAIMessage, scrollToBottom]);
 
-  // 生成场景 - 基于小说内容（允许传入覆盖的 API Key 以避免首次渲染竞态）
+  // 生成场景 - 基于小说内容
   const generateScene = useCallback(async (overrideApiKey?: string) => {
     // 去重：若已有初始化中的Promise，直接复用，避免重复发起
     if (initInFlightRef.current) {
@@ -174,95 +63,39 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
       return;
     }
 
-    setIsGeneratingScene(true);
+    actions.setGeneratingScene(true);
+    
     try {
-      // 沉浸式角色扮演场景生成 - 让用户完全沉浸在小说世界中
-      const scenePrompt = `You are the **narrator and scene director** of "${novel.title}" by ${novel.author}. Create an immersive conversation scene that makes the student feel like they ARE a character in the story.
-
-**Story Context:** ${novel.excerpt}
-
-**IMMERSION REQUIREMENTS:**
-- **Make the student feel they ARE living this moment in the novel**
-- **Create emotional stakes that feel real and urgent**
-- **Use vivid, sensory details that bring the scene to life**
-- **Make the conversation feel natural and spontaneous**
-- **Focus on the emotional journey, not language learning**
-
-**Scene Design:**
-- Choose a **pivotal, emotionally charged moment** from the actual novel
-- Create **immediate emotional stakes** - what's at risk right now?
-- Use **vivid sensory details** - what do they see, hear, feel, smell?
-- Make it feel **urgent and real** - like their life depends on this conversation
-
-**Return this exact JSON structure:**
-
-{
-  "title": "[Dramatic scene title that captures the emotional moment]",
-  "description": "[Brief emotional hook - what makes this moment unforgettable?]",
-  "context": "[Immersive scene setting with emotional urgency - make them feel they're THERE]",
-  "goal": "[Natural conversation goal that feels urgent and personal]",
-  "difficulty": "A2"
-}
-
-**Key Focus:** Make them forget they're learning English. Make them feel they're living this moment in the novel.
-
-JSON:`;
-
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...((overrideApiKey ?? apiKey) && { 'X-API-Key': (overrideApiKey ?? apiKey) }),
-        },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: scenePrompt }],
-          model: 'gpt-4o-mini',
-          stream: false  // JSON响应使用非流式API
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate scene');
-      }
-
-      // 非流式API直接返回完整文本
-      const fullText = await response.text();
-
-      // 使用智能JSON解析器
-      const defaultScene = {
-        title: "Coffee Shop Conversation",
-        description: "Practice ordering at a coffee shop",
-        context: "You are at a coffee shop. The barista is friendly and ready to help. You want to order a drink.",
-        goal: "Successfully order a coffee drink using natural English expressions",
-        difficulty: "A2" as "A2" | "B1"
-      };
-
-      const sceneData = safeParseAIJson(fullText, defaultScene);
+      // 创建临时服务实例（如果提供了覆盖的API Key）
+      const service = overrideApiKey ? createSceneService(overrideApiKey) : sceneService;
+      
+      // 生成场景
+      const sceneData = await service.generateScene(novel);
       
       // 初始化对话
       const initialMessage: Message = {
         id: Date.now().toString(),
         role: "assistant",
-        content: `Welcome to today's scenario: **${sceneData.title}**\n\n${sceneData.context}\n\n**Your Goal**: ${sceneData.goal}\n\nLet's start! Remember, speak only in English. You have ${MAX_TURNS} turns to reach ${PASS_SCORE} points. Good luck! 🎯`,
+        content: `Welcome to today's scenario: **${sceneData.title}**\n\n${sceneData.context}\n\n**Your Goal**: ${sceneData.goal}\n\nLet's start! Remember, speak only in English. You have ${SCENE_CONFIG.MAX_TURNS} turns to reach ${SCENE_CONFIG.PASS_SCORE} points. Good luck! 🎯`,
         timestamp: new Date(),
       };
       
       // 使用AI生成动态开场白
-      const aiGreeting = await generateDynamicGreeting(sceneData, (overrideApiKey ?? apiKey));
+      const aiGreeting = await service.generateDynamicGreeting(sceneData);
 
-      setScene(sceneData);
-      setMessages([initialMessage, aiGreeting]);
-      setCurrentTurn(0);
-      setIsGeneratingScene(false);
+      actions.setScene(sceneData);
+      actions.addMessage(initialMessage);
+      actions.addMessage(aiGreeting);
+      actions.setGeneratingScene(false);
       
     } catch (error) {
       console.error('[Scene Practice] Error generating scene:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       alert(`Failed to generate scene: ${errorMessage}\n\nPlease check:\n1. Your OpenAI API key is valid\n2. Your API key has sufficient credits\n3. Your network connection is stable`);
-      setIsGeneratingScene(false);
+      actions.setGeneratingScene(false);
       onBack();
     }
-  }, [novel, apiKey, onBack]);
+  }, [novel, sceneService, actions, onBack]);
 
   // 初始化场景（严格模式和依赖变化下也只执行一次）
   useEffect(() => {
@@ -270,201 +103,85 @@ JSON:`;
     hasInitializedRef.current = true;
 
     const savedKey = sessionStorage.getItem('api_key_openai') || undefined;
-    if (savedKey) setApiKey(savedKey);
+    if (savedKey) actions.setApiKey(savedKey);
 
     const initPromise = generateScene(savedKey);
     initInFlightRef.current = Promise.resolve(initPromise).finally(() => {
       initInFlightRef.current = null;
     }) as Promise<void>;
-  }, [generateScene]);
+  }, [generateScene, actions]);
 
   // 提交用户消息
   const handleSubmit = useCallback(async () => {
-    if (!input.trim() || isSending || isFinished || !scene) return;
+    if (!computed.canSubmit) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input.trim(),
+      content: state.input.trim(),
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInput("");
-    setIsSending(true);
-    setIsTyping(true);
-    setCurrentAIMessage("");
+    actions.addMessage(userMessage);
+    actions.setInput("");
+    actions.setSending(true);
+    actions.setTyping(true);
+    actions.setCurrentAIMessage("");
 
     try {
-      const conversationHistory = messages.map(m => ({
+      const conversationHistory = state.messages.map(m => ({
         role: m.role,
         content: m.content
       }));
 
-      const historicalScores = turnScores.filter((score: number) => score > 0);
-      const averageHistoricalScore = historicalScores.length > 0 
-        ? historicalScores.reduce((sum: number, score: number) => sum + score, 0) / historicalScores.length 
-        : 50;
-
-      const conversationContext = messages
-        .filter(m => m.role === 'assistant' || m.role === 'user')
-        .slice(-6)
-        .map(m => `${m.role === 'assistant' ? 'AI' : 'Student'}: ${m.content}`)
-        .join('\n');
-
-      // 沉浸式角色扮演评估系统 - 让AI完全沉浸在小说角色中
-      const evaluationPrompt = `You are **living as a character from "${novel.title}"** in this exact moment. The student is another character in the scene. Have a natural, immersive conversation while subtly evaluating their English behind the scenes.
-
-**Student Response:** "${userMessage.content}"
-**Scene:** ${scene.title}
-**Context:** ${scene.context}
-**Goal:** ${scene.goal}
-**Conversation History:** ${conversationContext}
-
-**ROLE-PLAY REQUIREMENTS:**
-- **You ARE the character from the novel - respond authentically and in-character**
-- **Continue the conversation naturally - never break character**
-- **Make it feel like a real, urgent conversation happening right now**
-- **Use emotional responses that fit the character and situation**
-- **Never mention evaluation, scoring, learning, or English practice**
-- **Stay completely immersed in the novel's world**
-
-**HIDDEN EVALUATION (Student never sees this):**
-- **Communication (0-100):** Did they express themselves clearly and appropriately?
-- **Accuracy (0-100):** Grammar and vocabulary correctness
-- **Scenario (0-100):** How well did they stay in character and respond to the situation?
-- **Fluency (0-100):** Natural flow and confidence in their response
-
-**Scoring Guidelines:**
-- **85-100:** Excellent - exceeded expectations
-- **70-84:** Good - met expectations with minor issues
-- **55-69:** Fair - showed effort but needs improvement
-- **40-54:** Needs work - significant issues but showed attempt
-- **0-39:** Poor - major problems or inappropriate response
-
-**Return this exact JSON structure:**
-
-{
-  "scores": {
-    "communication": [score],
-    "accuracy": [score],
-    "scenario": [score],
-    "fluency": [score]
-  },
-  "feedback": "[Brief, encouraging note - keep it subtle and natural]",
-  "response": "[Your character's authentic response that continues the scene naturally]",
-  "hasChinese": [true/false]
-}
-
-**Key Focus:** Be the character. Make it feel like a real conversation. Evaluation happens invisibly behind the scenes.
-
-JSON:`;
-
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(apiKey && { 'X-API-Key': apiKey }),
-        },
-        body: JSON.stringify({
-          messages: [
-            ...conversationHistory,
-            { role: 'user', content: userMessage.content },
-            { role: 'system', content: evaluationPrompt }
-          ],
-          model: 'gpt-4o-mini',
-          stream: false  // JSON响应使用非流式API
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-
-      // 非流式API直接返回完整文本
-      const fullText = await response.text();
-
-      // 使用智能JSON解析器
-      const defaultEvaluation = {
-        scores: {
-          communication: 80,
-          accuracy: 75,
-          scenario: 85,
-          fluency: 80
-        },
-        feedback: "Good effort! Keep practicing.",
-        response: "I see. Let's continue.",
-        hasChinese: false
-      };
-
-      const evaluation = safeParseAIJson(fullText, defaultEvaluation);
+      const evaluation = await sceneService.evaluateResponse(
+        userMessage.content,
+        state.scene!,
+        conversationHistory,
+        [...state.turnScores],
+        novel
+      );
 
       // 实现打字机效果
-      const responseText = evaluation.response || "I see. Let's continue.";
-      await new Promise<void>((resolve) => {
-        let charIndex = 0;
-        const typingSpeed = 30;
-        
-        const typeNextChar = () => {
-          if (charIndex < responseText.length) {
-            setCurrentAIMessage(responseText.slice(0, charIndex + 1));
-            charIndex++;
-            setTimeout(typeNextChar, typingSpeed);
-          } else {
-            resolve();
-          }
-        };
-        
-        typeNextChar();
-      });
+      await typeText(evaluation.response);
 
       // 智能评分处理
-      const scores: ScoreDimensions = evaluation.scores;
-      let turnScore = (scores.communication + scores.accuracy + scores.scenario + scores.fluency) / 4;
+      const finalTurnScore = calculateFinalTurnScore(evaluation.scores, evaluation.hasChinese);
+      const newTotalScore = calculateNewTotalScore(state.totalScore, state.currentTurn, finalTurnScore);
+      const scoreDiff = calculateScoreChange(newTotalScore, state.totalScore);
       
-      let finalTurnScore = turnScore;
-      if (evaluation.hasChinese) {
-        finalTurnScore = Math.max(0, turnScore - 15);
-      }
-
-      // 更新总分
-      const newTotalScore = Math.round(((totalScore * currentTurn) + finalTurnScore) / (currentTurn + 1));
-      const scoreDiff = newTotalScore - totalScore;
+      actions.setScoreChange(scoreDiff);
+      setTimeout(() => actions.setScoreChange(null), SCENE_CONFIG.SCORE_ANIMATION_DURATION);
       
-      setScoreChange(scoreDiff);
-      setTimeout(() => setScoreChange(null), 2000);
-      
-      setTotalScore(newTotalScore);
-      setTurnScores(prev => [...prev, finalTurnScore]);
+      actions.setTotalScore(newTotalScore);
+      actions.addTurnScore(finalTurnScore);
 
       // 更新用户消息添加评分
-      setMessages(prev => prev.map(m => 
-        m.id === userMessage.id 
-          ? { ...m, score: scores, feedback: evaluation.feedback }
-          : m
-      ));
+      actions.updateMessage(userMessage.id, {
+        score: evaluation.scores,
+        feedback: evaluation.feedback
+      });
 
       // AI 回复
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: responseText,
+        content: evaluation.response,
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, aiMessage]);
-      setCurrentAIMessage("");
+      actions.addMessage(aiMessage);
+      actions.setCurrentAIMessage("");
       
       // 更新轮次
-      const nextTurn = currentTurn + 1;
-      setCurrentTurn(nextTurn);
+      actions.incrementTurn();
 
       // 检查是否结束
-      if (nextTurn >= MAX_TURNS) {
-        setIsFinished(true);
+      if (state.currentTurn + 1 >= SCENE_CONFIG.MAX_TURNS) {
+        actions.setFinished(true);
         // 通知父组件
         setTimeout(() => {
-          onComplete(newTotalScore, newTotalScore >= PASS_SCORE);
+          onComplete(newTotalScore, hasPassed(newTotalScore));
         }, 1000);
       }
 
@@ -472,13 +189,13 @@ JSON:`;
       console.error('Error sending message:', error);
       alert('Failed to send message. Please try again.');
     } finally {
-      setIsSending(false);
-      setIsTyping(false);
+      actions.setSending(false);
+      actions.setTyping(false);
     }
-  }, [input, isSending, isFinished, scene, messages, currentTurn, totalScore, apiKey, turnScores, onComplete]);
+  }, [state, actions, computed, sceneService, novel, typeText, onComplete]);
 
   // 加载场景中
-  if (!scene || isGeneratingScene) {
+  if (!state.scene || state.isGeneratingScene) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
         <div className="text-center">
@@ -513,7 +230,7 @@ JSON:`;
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
               <MessageCircle className="w-4 h-4 text-amber-700 dark:text-amber-300" />
               <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                {currentTurn}/{MAX_TURNS}
+                {state.currentTurn}/{SCENE_CONFIG.MAX_TURNS}
               </span>
             </div>
           </div>
@@ -527,15 +244,15 @@ JSON:`;
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 relative">
-                <TrophyIcon className={`w-6 h-6 ${totalScore >= PASS_SCORE ? 'text-green-500' : 'text-amber-500'}`} />
+                <TrophyIcon className={`w-6 h-6 ${state.totalScore >= SCENE_CONFIG.PASS_SCORE ? 'text-green-500' : 'text-amber-500'}`} />
                 <span className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                  {totalScore}
+                  {state.totalScore}
                 </span>
                 <span className="text-sm text-gray-500 dark:text-gray-400">/ 100</span>
                 
                 {/* 分数变化动画 */}
                 <AnimatePresence>
-                  {scoreChange !== null && (
+                  {state.scoreChange !== null && (
                     <motion.div
                       initial={{ opacity: 0, y: 10, scale: 0.5 }}
                       animate={{ 
@@ -550,14 +267,14 @@ JSON:`;
                         ease: "easeOut"
                       }}
                       className={`absolute left-1/2 -translate-x-1/2 top-0 font-bold text-2xl pointer-events-none drop-shadow-lg ${
-                        scoreChange > 0 
+                        state.scoreChange > 0 
                           ? 'text-green-500' 
-                          : scoreChange < 0 
+                          : state.scoreChange < 0 
                           ? 'text-red-500' 
                           : 'text-gray-500'
                       }`}
                     >
-                      {scoreChange > 0 ? '+' : ''}{scoreChange}
+                      {state.scoreChange > 0 ? '+' : ''}{state.scoreChange}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -567,7 +284,7 @@ JSON:`;
             <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
               <Target className="w-4 h-4 text-blue-700 dark:text-blue-300" />
               <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                Goal: {PASS_SCORE}
+                Goal: {SCENE_CONFIG.PASS_SCORE}
               </span>
             </div>
           </div>
@@ -576,22 +293,22 @@ JSON:`;
           <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
               className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${
-                totalScore >= PASS_SCORE
+                state.totalScore >= SCENE_CONFIG.PASS_SCORE
                   ? 'bg-gradient-to-r from-green-500 to-emerald-500'
                   : 'bg-gradient-to-r from-amber-500 to-orange-500'
               }`}
-              style={{ width: `${Math.min(totalScore, 100)}%` }}
+              style={{ width: `${Math.min(state.totalScore, 100)}%` }}
             />
             <div
               className="absolute inset-y-0 w-0.5 bg-blue-500"
-              style={{ left: `${PASS_SCORE}%` }}
+              style={{ left: `${SCENE_CONFIG.PASS_SCORE}%` }}
             />
           </div>
 
           {/* 最后一次评分详情 */}
-          {messages.length > 1 && messages[messages.length - 2]?.score && (
+          {state.messages.length > 1 && state.messages[state.messages.length - 2]?.score && (
             <div className="mt-3 flex gap-2">
-              {Object.entries(messages[messages.length - 2].score || {}).map(([key, value]) => (
+              {Object.entries(state.messages[state.messages.length - 2].score || {}).map(([key, value]) => (
                 <div key={key} className="flex-1 px-2 py-1.5 bg-white/80 dark:bg-gray-700/80 rounded-lg border border-gray-200/50 dark:border-gray-600/50">
                   <div className="text-xs text-gray-600 dark:text-gray-400 capitalize mb-0.5">{key}</div>
                   <div className="text-base font-semibold text-gray-900 dark:text-white">{Math.round(value)}</div>
@@ -609,7 +326,7 @@ JSON:`;
         style={{ scrollBehavior: "smooth" }}
       >
         <div className="max-w-4xl mx-auto space-y-4">
-          {messages.map((message) => (
+          {state.messages.map((message) => (
             <div
               key={message.id}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -636,18 +353,18 @@ JSON:`;
           ))}
 
           {/* 正在输入 */}
-          {isTyping && currentAIMessage && (
+          {state.isTyping && state.currentAIMessage && (
             <div className="flex justify-start">
               <div className="max-w-[80%]">
                 <div className="px-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-900 dark:text-white">
-                  <div className="text-sm whitespace-pre-wrap">{currentAIMessage}</div>
+                  <div className="text-sm whitespace-pre-wrap">{state.currentAIMessage}</div>
                 </div>
               </div>
             </div>
           )}
 
           {/* AI回复等待动效 */}
-          {isSending && !currentAIMessage && (
+          {state.isSending && !state.currentAIMessage && (
             <div className="flex justify-start">
               <div className="max-w-[80%]">
                 <div className="px-4 py-3 rounded-2xl bg-gradient-to-r from-orange-100/80 to-amber-100/80 dark:from-orange-900/50 dark:to-amber-900/50 backdrop-blur-sm border border-orange-200/50 dark:border-orange-700/50">
@@ -662,22 +379,20 @@ JSON:`;
               </div>
             </div>
           )}
-
-          {/* 结束状态 - 在场景练习中不显示，由父组件处理 */}
         </div>
         
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
-      {!isFinished && (
+      {!state.isFinished && (
         <div className="flex-shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-700/50 p-4">
           <div className="w-full max-w-4xl mx-auto">
             <AIInputWarm
-              value={input}
-              onChange={setInput}
+              value={state.input}
+              onChange={actions.setInput}
               onSubmit={handleSubmit}
-              isLoading={isSending}
+              isLoading={state.isSending}
               onVoiceError={(error) => console.error("Voice error:", error)}
               onInputFocus={scrollToBottom}
               onInputBlur={scrollToBottom}
@@ -689,4 +404,3 @@ JSON:`;
     </div>
   );
 }
-

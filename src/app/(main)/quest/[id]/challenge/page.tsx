@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
@@ -8,6 +8,7 @@ import {
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 import { getNovelById } from '@/lib/api/novel-mock-data';
+import { hasPassed } from '@/utils/score-calculator';
 import type { NovelContent } from '@/lib/api/novel-mock-data';
 import { ScenePractice } from './scene-practice';
 import { Settlement } from './settlement';
@@ -32,35 +33,53 @@ export default function QuestChallengePage() {
 
   const novelId = params.id as string;
 
+  // 加载小说数据
   useEffect(() => {
-    setTimeout(() => {
+    const loadNovel = async () => {
+      // 模拟异步加载，提供更好的用户体验
+      await new Promise(resolve => setTimeout(resolve, 300));
       const foundNovel = getNovelById(novelId);
       setNovel(foundNovel || null);
       setLoading(false);
-    }, 300);
+    };
+
+    loadNovel().catch(console.error);
   }, [novelId]);
 
   // 处理场景练习完成
-  const handleScenePracticeComplete = (score: number, isPassed: boolean) => {
+  const handleScenePracticeComplete = useCallback((score: number, isPassed: boolean) => {
     setFinalScore(score);
     setPassed(isPassed);
     setCurrentStep('settlement');
-  };
+  }, []);
 
   // 处理返回
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     router.back();
-  };
+  }, [router]);
 
   // 处理分享
-  const handleShare = () => {
+  const handleShare = useCallback(() => {
     setCurrentStep('share');
-  };
+  }, []);
 
   // 处理返回到 Feed
-  const handleBackToFeed = () => {
+  const handleBackToFeed = useCallback(() => {
     router.push('/');
-  };
+  }, [router]);
+
+  // 计算属性
+  const isGameCompleted = useMemo(() => {
+    return currentStep === 'settlement' || currentStep === 'share';
+  }, [currentStep]);
+
+  const gameResult = useMemo(() => {
+    return {
+      score: finalScore,
+      passed,
+      grade: hasPassed(finalScore) ? 'PASSED' : 'NOT_PASSED',
+    };
+  }, [finalScore, passed]);
 
   if (loading) {
     return (

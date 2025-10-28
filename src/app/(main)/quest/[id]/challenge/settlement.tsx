@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { TrophyIcon, FireIcon, CheckCircleIcon, SparklesIcon } from "@heroicons/react/24/outline";
-import { processSSEStream } from "@/lib/ai/sse-parser";
+import { SceneService } from "@/services/scene.service";
+import { getScoreGrade, getScoreDescription } from "@/utils/score-calculator";
 import type { NovelContent } from "@/lib/api/novel-mock-data";
 
 interface SettlementProps {
@@ -15,93 +16,27 @@ interface SettlementProps {
   onBackToFeed: () => void;
 }
 
-// 使用AI生成小说主角口吻的结算文案
-async function generateCharacterFeedback(
-  novel: NovelContent,
-  score: number,
-  passed: boolean,
-  apiKey?: string
-): Promise<string> {
-  const prompt = `You are writing settlement feedback for an English learning challenge in the voice of the protagonist from the novel "${novel.title}" by ${novel.author}.
-
-Novel Synopsis: ${novel.excerpt}
-
-Challenge Results:
-- Score: ${score}/100
-- Status: ${passed ? 'PASSED' : 'NOT PASSED'}
-- Pass Threshold: 80
-
-Write a short, encouraging message (2-3 sentences) to the student in the voice of the novel's protagonist. 
-
-Requirements:
-1. Stay in character - use the protagonist's personality, speaking style, and tone
-2. Reference the novel's themes or setting if appropriate
-3. Be encouraging and supportive, whether they passed or not
-4. Keep it under 60 words
-5. Make it feel authentic to the character
-6. If they passed, celebrate their achievement
-7. If they didn't pass, encourage them to try again with hope
-
-Only return the message text, nothing else.`;
-
-  try {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(apiKey && { 'X-API-Key': apiKey }),
-      },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: prompt }],
-        model: 'gpt-4o-mini',
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to generate feedback');
-    }
-
-    const reader = response.body?.getReader();
-    let fullText = "";
-
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        processSSEStream(
-          value,
-          (content: string) => {
-            fullText += content;
-          },
-          () => {}
-        );
-      }
-    }
-
-    return fullText.trim();
-  } catch (error) {
-    console.error('Failed to generate character feedback:', error);
-    // 降级到通用反馈
-    if (passed) {
-      return "Excellent work! You've demonstrated great English skills and completed the challenge successfully. Keep up the fantastic progress!";
-    } else {
-      return "You gave it a good try! Every challenge is a learning opportunity. Review your performance and come back stronger. You can do this!";
-    }
-  }
-}
+// 创建场景服务实例
+const createSceneService = (apiKey?: string) => new SceneService({ apiKey });
 
 export function Settlement({ novel, score, passed, onShare, onBackToFeed }: SettlementProps) {
   const router = useRouter();
   const [characterFeedback, setCharacterFeedback] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // 从 sessionStorage 获取 API Key
+  // 创建场景服务实例
+  const sceneService = useMemo(() => {
     const apiKey = sessionStorage.getItem('api_key_openai') || undefined;
-    
-    // 生成角色反馈
-    generateCharacterFeedback(novel, score, passed, apiKey)
+    return createSceneService(apiKey);
+  }, []);
+
+  // 生成角色反馈
+  const generateCharacterFeedback = useCallback(async () => {
+    return await sceneService.generateCharacterFeedback(novel, score, passed);
+  }, [novel, score, passed, sceneService]);
+
+  useEffect(() => {
+    generateCharacterFeedback()
       .then(feedback => {
         setCharacterFeedback(feedback);
         setIsLoading(false);
@@ -109,7 +44,7 @@ export function Settlement({ novel, score, passed, onShare, onBackToFeed }: Sett
       .catch(() => {
         setIsLoading(false);
       });
-  }, [novel, score, passed]);
+  }, [generateCharacterFeedback]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900 flex items-center justify-center p-4">
@@ -301,7 +236,7 @@ export function Settlement({ novel, score, passed, onShare, onBackToFeed }: Sett
                 <TrophyIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                {score >= 90 ? 'A+' : score >= 80 ? 'A' : score >= 70 ? 'B' : score >= 60 ? 'C' : 'D'}
+                {getScoreGrade(score)}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400">
                 Grade
