@@ -6,7 +6,7 @@ import { useMultiChapterQuest } from "@/hooks/use-multi-chapter-quest";
 import { ChapterReading } from "./chapter-reading";
 import { ChapterTransition } from "./chapter-transition";
 import { FinalSettlement } from "./final-settlement";
-import { ScenePractice } from "@/app/(main)/quest/[id]/challenge/scene-practice";
+import { ScenePractice } from "@/components/quest/scene-practice";
 import type { MultiChapterQuestProps } from "@/types/multi-chapter";
 
 export function MultiChapterQuest({ quest, onComplete, onBack }: MultiChapterQuestProps) {

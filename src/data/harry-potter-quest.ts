@@ -273,7 +273,7 @@ And with that, Harry's new life began.`,
 
 // 创建多章节Quest
 export const harryPotterMultiChapterQuest: MultiChapterQuest = {
-  id: 'harry-potter-multi-chapter-a2',
+  id: 'hp-a2',
   title: 'Harry Potter: The Boy Who Lived',
   description: 'Join Harry Potter on his journey from the cupboard under the stairs to the magical world of Hogwarts. Experience his first encounters with magic, friendship, and adventure.',
   novel: harryPotterNovel,

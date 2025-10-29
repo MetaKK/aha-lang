@@ -35,10 +35,10 @@ const PostCard = memo(function PostCard({ card, onInteraction }: PostCardProps) 
                        (card as any).novel?.questType;
     
     if (isQuestCard) {
-      router.push(`/quest/${card.id}`);
+      router.push(`/content/quest/${card.id}`);
     } else {
       // All other cards go to post page
-      router.push(`/post/${card.id}`);
+      router.push(`/content/post/${card.id}`);
     }
   }, [card.id, router]);
 

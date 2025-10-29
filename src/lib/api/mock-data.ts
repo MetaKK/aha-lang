@@ -15,7 +15,7 @@ export const createMockData = (): FeedCard[] => {
   return [
     // Multi-Chapter Quest Card - Harry Potter
     {
-      id: 'quest-harry-potter-multi-chapter',
+      id: 'hp-quest',
       type: 'novel',
       author: {
         id: 'author-hp-quest',
@@ -30,7 +30,7 @@ export const createMockData = (): FeedCard[] => {
       stats: { replies: 89, reposts: 234, likes: 1205, bookmarks: 456, views: 5600 },
       viewer: { liked: false, reposted: false, bookmarked: false },
       novel: {
-        id: 'harry-potter-multi-chapter-a2',
+        id: 'hp-a2',
         title: 'Harry Potter: The Boy Who Lived',
         excerpt: 'Harry Potter has never been the star of a Quidditch team, scoring points while riding a broom far above the ground. He knows no spells, has never helped to hatch a dragon, and has never worn a cloak of invisibility...',
         coverImage: 'https://images.unsplash.com/photo-1600189261867-30e5ffe7b8da?w=400&h=600&fit=crop',
@@ -64,7 +64,7 @@ export const createMockData = (): FeedCard[] => {
         id: 'novel-001',
         title: 'The Visitors\' Zoo',
         excerpt: 'Emma and I were on our honeymoon in space. We visited the Moon and flew far away from Earth. But what we discovered would change everything...',
-        coverImage: 'https://picsum.photos/seed/novel-zoo-dinosaur/600/900',
+        coverImage: 'https://picsum.photos/seed/novel-space-astronaut/600/900',
         difficulty: 3,
         totalChapters: 1,
         currentChapter: 1,

@@ -15,8 +15,6 @@ import {
   hasPassed 
 } from "@/utils/score-calculator";
 import { SCENE_CONFIG } from "@/config/scene";
-import { getBackgroundConfig } from "@/config/backgrounds";
-import { ConfigurableBackground } from "@/components/common/configurable-background";
 import type { ScenePracticeProps, Message } from "@/types/scene";
 import type { NovelContent } from "@/lib/api/novel-mock-data";
 
@@ -26,9 +24,6 @@ const createSceneService = (apiKey?: string) => new SceneService({ apiKey });
 export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps) {
   const router = useRouter();
   const { state, actions, computed } = useSceneState();
-  
-  // 获取背景配置
-  const backgroundConfig = getBackgroundConfig('harry-potter-multi-chapter-a2').scenePractice;
   
   // Refs for DOM manipulation
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -202,7 +197,7 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
   // 加载场景中
   if (!state.scene || state.isGeneratingScene) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+      <div className="fixed inset-0 w-full h-full overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center animate-pulse">
             <SparklesIcon className="w-8 h-8 text-white" />
@@ -219,11 +214,12 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
   }
 
   return (
-    <ConfigurableBackground
-      config={backgroundConfig}
-      className="h-screen min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
-    >
-      <div className="flex flex-col h-full" style={{ height: '100dvh' }}>
+    <div className="fixed inset-0 w-full h-full overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="absolute inset-0 w-full h-full" style={{ opacity: 1 }}>
+        <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(to right bottom, rgba(251, 191, 36, 0.2), rgba(251, 146, 60, 0.2), rgba(251, 191, 36, 0.2))' }}></div>
+      </div>
+      <div className="relative z-10 w-full h-full">
+        <div className="flex flex-col h-full" style={{ height: '100dvh' }}>
       {/* Header */}
       <div className="flex-shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-4 py-3">
         <div className="flex items-center justify-between">
@@ -410,7 +406,8 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
           </div>
         </div>
       )}
+        </div>
       </div>
-    </ConfigurableBackground>
+    </div>
   );
 }

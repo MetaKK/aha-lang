@@ -180,9 +180,9 @@ export const defaultBackgrounds: QuestBackgroundConfig = {
 // 背景配置获取函数
 export function getBackgroundConfig(questId: string): QuestBackgroundConfig {
   switch (questId) {
-    case 'harry-potter-multi-chapter-a2':
+    case 'hp-a2':
       return harryPotterBackgrounds;
-    case 'novel-001': // Visitor Zoo
+    case 'novel-001':
       return visitorZooBackgrounds;
     default:
       return defaultBackgrounds;
@@ -190,4 +190,4 @@ export function getBackgroundConfig(questId: string): QuestBackgroundConfig {
 }
 
 // 背景配置类型
-export type QuestId = 'harry-potter-multi-chapter-a2' | 'novel-001' | string;
+export type QuestId = 'hp-a2' | 'novel-001' | string;

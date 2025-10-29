@@ -155,24 +155,6 @@ const QuestCard = memo(function QuestCard({
                   {novel.excerpt}
                 </p>
 
-                {/* Multi-Chapter Info */}
-                {novel.questType === 'multi-chapter' && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                      <BookOpenIcon className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                      <span className="text-[11px] font-medium text-purple-700 dark:text-purple-300">
-                        {novel.totalChapters} Chapters
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                      <SparklesIcon className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                      <span className="text-[11px] font-medium text-blue-700 dark:text-blue-300">
-                        Interactive
-                      </span>
-                    </div>
-                  </div>
-                )}
-
                 {/* Meta Info */}
                 <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1">
@@ -211,8 +193,8 @@ const QuestCard = memo(function QuestCard({
             <div className="px-3 pb-3">
               <Link 
                 href={novel.questType === 'multi-chapter' 
-                  ? `/quest/${novel.id}/multi-chapter`
-                  : `/novel/${novel.id}`
+                  ? `/content/quest/${novel.id}/challenge`
+                  : `/content/novel/${novel.id}`
                 }
                 onClick={(e) => e.stopPropagation()}
               >

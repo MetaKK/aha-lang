@@ -14,6 +14,8 @@ import {
   PauseIcon
 } from '@heroicons/react/24/outline';
 import { useAuthState } from '@/hooks/use-auth';
+import { getContentById } from '@/lib/api/novel-mock-data';
+import type { NovelContent } from '@/lib/api/novel-mock-data';
 
 interface Quest {
   id: string;
@@ -37,10 +39,11 @@ interface Question {
   audioUrl?: string;
 }
 
-export default function QuestPage() {
+export default function ContentChallengePage() {
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated } = useAuthState();
+  const [content, setContent] = useState<NovelContent | null>(null);
   const [quest, setQuest] = useState<Quest | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -49,60 +52,83 @@ export default function QuestPage() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
 
-  const questId = params.id as string;
+  const contentType = params.type as string;
+  const contentId = params.id as string;
 
   useEffect(() => {
-    // 模拟获取quest数据
-    const mockQuest: Quest = {
-      id: questId,
-      title: 'English Vocabulary Quest',
-      description: 'Test your vocabulary knowledge with this interactive quest',
-      type: 'vocabulary',
-      difficulty: 3,
-      estimatedTime: '15 min',
-      questions: [
-        {
-          id: 'q1',
-          type: 'multiple_choice',
-          question: 'What does "serendipity" mean?',
-          options: [
-            'A happy accident',
-            'A sad event',
-            'A planned activity',
-            'A difficult task'
-          ],
-          correctAnswer: 'A happy accident',
-          explanation: 'Serendipity refers to the occurrence of events by chance in a happy or beneficial way.'
-        },
-        {
-          id: 'q2',
-          type: 'fill_blank',
-          question: 'Complete the sentence: "The weather is so _____ today."',
-          correctAnswer: 'beautiful',
-          explanation: 'Beautiful is an appropriate adjective to describe good weather.'
-        },
-        {
-          id: 'q3',
-          type: 'multiple_choice',
-          question: 'Which word is a synonym for "enormous"?',
-          options: [
-            'Tiny',
-            'Huge',
-            'Small',
-            'Little'
-          ],
-          correctAnswer: 'Huge',
-          explanation: 'Huge is a synonym for enormous, both meaning very large.'
+    const loadContent = async () => {
+      setLoading(true);
+      
+      try {
+        if (contentType === 'novel' || contentType === 'quest') {
+          const novelData = getContentById(contentId);
+          setContent(novelData || null);
+          
+          // 创建基于内容的Quest
+          if (novelData) {
+            const mockQuest: Quest = {
+              id: contentId,
+              title: `${novelData.title} Challenge`,
+              description: `Test your understanding of "${novelData.title}" with this interactive challenge`,
+              type: 'comprehension',
+              difficulty: 3,
+              estimatedTime: '15 min',
+              questions: [
+                {
+                  id: 'q1',
+                  type: 'multiple_choice',
+                  question: `What is the main theme of "${novelData.title}"?`,
+                  options: [
+                    'Adventure and exploration',
+                    'Love and relationships',
+                    'Good vs. evil',
+                    'Coming of age'
+                  ],
+                  correctAnswer: 'Adventure and exploration',
+                  explanation: 'This story primarily focuses on adventure and exploration themes.'
+                },
+                {
+                  id: 'q2',
+                  type: 'fill_blank',
+                  question: `Complete the sentence: "The protagonist in "${novelData.title}" is a _____ character."`,
+                  correctAnswer: 'brave',
+                  explanation: 'The protagonist demonstrates courage throughout the story.'
+                },
+                {
+                  id: 'q3',
+                  type: 'multiple_choice',
+                  question: `Which genre best describes "${novelData.title}"?`,
+                  options: [
+                    'Romance',
+                    'Fantasy',
+                    'Mystery',
+                    'Science Fiction'
+                  ],
+                  correctAnswer: 'Fantasy',
+                  explanation: 'The story contains magical elements and fantastical settings.'
+                }
+              ],
+              passingScore: 70,
+              timeLimit: 900 // 15 minutes in seconds
+            };
+            
+            setQuest(mockQuest);
+            setTimeRemaining(mockQuest.timeLimit || null);
+          }
+        } else {
+          setContent(null);
+          setQuest(null);
         }
-      ],
-      passingScore: 70,
-      timeLimit: 900 // 15 minutes in seconds
+      } catch (error) {
+        setContent(null);
+        setQuest(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setQuest(mockQuest);
-    setTimeRemaining(mockQuest.timeLimit || null);
-    setLoading(false);
-  }, [questId]);
+    loadContent();
+  }, [contentType, contentId]);
 
   // 计时器
   useEffect(() => {
@@ -153,6 +179,10 @@ export default function QuestPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
@@ -164,15 +194,15 @@ export default function QuestPage() {
     );
   }
 
-  if (!quest) {
+  if (!content || !quest) {
     return (
       <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <XCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Quest Not Found</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">This quest doesn't exist or has been removed.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Content Not Found</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">This content doesn't exist or has been removed.</p>
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Go Back
@@ -190,7 +220,7 @@ export default function QuestPage() {
       <div className="sticky top-0 z-10 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between px-4 py-3">
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
             <ArrowLeftIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
@@ -330,7 +360,7 @@ export default function QuestPage() {
               
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {score! >= quest.passingScore 
-                  ? 'You passed the quest!' 
+                  ? 'You passed the challenge!' 
                   : `You need ${quest.passingScore}% to pass. Try again!`
                 }
               </p>
@@ -360,10 +390,10 @@ export default function QuestPage() {
               </button>
               
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push(`/content/${contentType}/${contentId}`)}
                 className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
-                Back to Feed
+                Back to Content
               </button>
             </div>
           </motion.div>

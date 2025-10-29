@@ -7,14 +7,14 @@ import {
   SparklesIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
-import { getNovelById } from '@/lib/api/novel-mock-data';
+import { getContentById } from '@/lib/api/novel-mock-data';
 import { hasPassed } from '@/utils/score-calculator';
 import type { NovelContent } from '@/lib/api/novel-mock-data';
-import { ScenePractice } from './scene-practice';
-import { Settlement } from './settlement';
+import { ScenePractice } from '@/components/quest/scene-practice';
+import { Settlement } from '@/components/quest/settlement';
 
 /**
- * Quest挑战页面 - 集成场景英语对话挑战
+ * 内容练习页面 - 集成场景英语对话练习
  * 
  * 流程：
  * 1. 场景英语对话练习（5轮，实时评分）
@@ -22,29 +22,39 @@ import { Settlement } from './settlement';
  * 3. 分享成就
  */
 
-export default function QuestChallengePage() {
+export default function ContentPracticePage() {
   const params = useParams();
   const router = useRouter();
-  const [novel, setNovel] = useState<NovelContent | null>(null);
+  const [content, setContent] = useState<NovelContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState<'scene-practice' | 'settlement' | 'share'>('scene-practice');
   const [finalScore, setFinalScore] = useState<number>(0);
   const [passed, setPassed] = useState<boolean>(false);
 
-  const novelId = params.id as string;
+  const contentType = params.type as string;
+  const contentId = params.id as string;
 
-  // 加载小说数据
+  // 加载内容数据
   useEffect(() => {
-    const loadNovel = async () => {
-      // 模拟异步加载，提供更好的用户体验
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const foundNovel = getNovelById(novelId);
-      setNovel(foundNovel || null);
-      setLoading(false);
+    const loadContent = async () => {
+      setLoading(true);
+      
+      try {
+        if (contentType === 'novel' || contentType === 'quest') {
+          const novelData = getContentById(contentId);
+          setContent(novelData || null);
+        } else {
+          setContent(null);
+        }
+      } catch (error) {
+        setContent(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    loadNovel().catch(console.error);
-  }, [novelId]);
+    loadContent();
+  }, [contentType, contentId]);
 
   // 处理场景练习完成
   const handleScenePracticeComplete = useCallback((score: number, isPassed: boolean) => {
@@ -63,10 +73,10 @@ export default function QuestChallengePage() {
     setCurrentStep('share');
   }, []);
 
-  // 处理返回到 Feed
-  const handleBackToFeed = useCallback(() => {
-    router.push('/');
-  }, [router]);
+  // 处理返回到内容详情
+  const handleBackToContent = useCallback(() => {
+    router.push(`/content/${contentType}/${contentId}`);
+  }, [router, contentType, contentId]);
 
   // 计算属性
   const isGameCompleted = useMemo(() => {
@@ -86,18 +96,18 @@ export default function QuestChallengePage() {
       <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading challenge...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading practice...</p>
         </div>
       </div>
     );
   }
 
-  if (!novel) {
+  if (!content) {
     return (
       <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="text-center px-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Challenge Not Found
+            Content Not Found
           </h1>
           <button
             onClick={() => router.back()}
@@ -114,7 +124,7 @@ export default function QuestChallengePage() {
   if (currentStep === 'scene-practice') {
     return (
       <ScenePractice 
-        novel={novel!} 
+        novel={content} 
         onComplete={handleScenePracticeComplete}
         onBack={handleBack}
       />
@@ -124,11 +134,11 @@ export default function QuestChallengePage() {
   if (currentStep === 'settlement') {
     return (
       <Settlement
-        novel={novel!}
+        novel={content}
         score={finalScore}
         passed={passed}
         onShare={handleShare}
-        onBackToFeed={handleBackToFeed}
+        onBackToFeed={handleBackToContent}
       />
     );
   }
@@ -156,7 +166,7 @@ export default function QuestChallengePage() {
             <div className="bg-gradient-to-br from-primary/10 to-purple-600/10 rounded-xl p-6 mb-6">
               <CheckCircleIcon className="w-12 h-12 text-green-500 mx-auto mb-3" />
               <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Completed "{novel?.title}"
+                Completed "{content?.title}"
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Score: {finalScore}% • {passed ? 'Passed!' : 'Keep practicing!'}
@@ -170,7 +180,7 @@ export default function QuestChallengePage() {
           </div>
 
           <button
-            onClick={handleBackToFeed}
+            onClick={handleBackToContent}
             className="w-full py-4 px-6 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors"
           >
             Continue Learning
@@ -182,4 +192,3 @@ export default function QuestChallengePage() {
 
   return null;
 }
-

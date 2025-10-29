@@ -221,7 +221,6 @@ export default function PostPage({ params }: PostPageProps) {
     
     // 阻止对乐观更新的临时评论进行点赞操作
     if (commentId.startsWith('optimistic-')) {
-      console.warn('[handleLikeComment] Cannot like comment with optimistic ID:', commentId);
       return;
     }
     
@@ -949,4 +948,3 @@ function RepostCard({ originalCard }: { originalCard: any }) {
     </div>
   );
 }
-

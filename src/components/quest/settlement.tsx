@@ -14,12 +14,13 @@ interface SettlementProps {
   passed: boolean;
   onShare: () => void;
   onBackToFeed: () => void;
+  buttonText?: string;
 }
 
 // 创建场景服务实例
 const createSceneService = (apiKey?: string) => new SceneService({ apiKey });
 
-export function Settlement({ novel, score, passed, onShare, onBackToFeed }: SettlementProps) {
+export function Settlement({ novel, score, passed, onShare, onBackToFeed, buttonText = "Back to Feed" }: SettlementProps) {
   const router = useRouter();
   const [characterFeedback, setCharacterFeedback] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -262,7 +263,7 @@ export function Settlement({ novel, score, passed, onShare, onBackToFeed }: Sett
               onClick={onBackToFeed}
               className="w-full h-12 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-xl transition-all border-2 border-gray-200 dark:border-gray-600 transform hover:scale-[1.02] active:scale-[0.98]"
             >
-              Back to Feed
+              {buttonText}
             </button>
           </motion.div>
         </div>

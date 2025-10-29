@@ -32,7 +32,7 @@ export function NovelReaderAdapter({ chapter, onComplete, onBack }: ChapterReadi
   };
 
   // 获取背景配置
-  const backgroundConfig = getBackgroundConfig('harry-potter-multi-chapter-a2').reading;
+  const backgroundConfig = getBackgroundConfig('hp-a2').reading;
 
   return (
     <NovelReaderWrapper
