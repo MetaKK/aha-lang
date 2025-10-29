@@ -19,7 +19,7 @@ let supabaseClient: ReturnType<typeof createBrowserClient<Database>> | null = nu
 let mockClient: ReturnType<typeof createMockSupabaseClient> | null = null;
 
 export function getSupabaseClient() {
-  // 如果启用了模拟认证，返回模拟客户端
+  // 如果启用了模拟认证，返回模拟客户端（本地开发或预览环境）
   if (isMockAuthEnabled() && isLocalDevelopment()) {
     if (!mockClient) {
       mockClient = createMockSupabaseClient();
@@ -28,16 +28,8 @@ export function getSupabaseClient() {
     return mockClient as any;
   }
 
-  // 如果未启用后端同步，返回null（但允许Mock Auth在预览环境工作）
+  // 如果未启用后端同步，返回null
   if (!isBackendSyncEnabled()) {
-    // 在预览环境且启用了Mock Auth时，也返回Mock客户端
-    if (process.env.VERCEL_ENV === 'preview' && isMockAuthEnabled()) {
-      if (!mockClient) {
-        mockClient = createMockSupabaseClient();
-        console.log('[Supabase] Mock authentication enabled in preview');
-      }
-      return mockClient as any;
-    }
     console.log('[Supabase] Backend sync disabled, using mock data');
     return null;
   }
