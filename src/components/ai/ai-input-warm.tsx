@@ -157,15 +157,13 @@ export function AIInputWarm({
           // Apple风格的温暖背景
           "bg-white/70 dark:bg-gray-900/70",
           "backdrop-blur-2xl",
-          // 温暖的边框 - 只保留左右边框
-          "border-l border-r border-orange-200/30 dark:border-orange-800/30",
+          // 简化边框 - 移除复杂边框效果
           "rounded-3xl",
           // Apple风格的柔和阴影
           "shadow-lg shadow-orange-500/10 dark:shadow-orange-500/5",
           "transition-all duration-500 ease-out",
           // 激活状态 - 温暖的光效
           isActive && "shadow-xl shadow-orange-400/20 dark:shadow-orange-400/10",
-          isActive && "border-l-orange-300/50 border-r-orange-300/50 dark:border-l-orange-700/50 dark:border-r-orange-700/50",
           isActive && "bg-white/80 dark:bg-gray-900/80"
         )}
         onMouseEnter={() => setIsHovered(true)}

@@ -233,7 +233,7 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
 
         {/* 主内容 */}
         <div className="relative z-10 flex items-center justify-center h-full p-4">
-          <div className="text-center max-w-md">
+          <div className="text-center">
             {/* 魔法圆环 */}
             <div className="relative w-24 h-24 mx-auto mb-6">
               <motion.div
@@ -312,7 +312,7 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
       <div className="relative z-10 w-full h-full">
         <div className="flex flex-col h-full" style={{ height: '100dvh' }}>
       {/* Header */}
-      <div className="flex-shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-4 py-3">
+      <div className="flex-shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-subtle px-4 py-3">
         <div className="flex items-center justify-between">
           <button
             onClick={onBack}
@@ -334,7 +334,7 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
       </div>
 
       {/* Score Dashboard */}
-      <div className="flex-shrink-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-b border-gray-200/30 dark:border-gray-700/30 px-4 py-4">
+      <div className="flex-shrink-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-b border-subtle px-4 py-4">
         <div className="max-w-4xl mx-auto">
           {/* 总分和目标 */}
           <div className="flex items-center justify-between mb-3">
@@ -432,7 +432,7 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
                   className={`px-4 py-3 rounded-2xl ${
                     message.role === 'user'
                       ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white'
-                      : 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-900 dark:text-white'
+                      : 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-subtle text-gray-900 dark:text-white'
                   }`}
                 >
                   <div className="text-sm whitespace-pre-wrap">{message.content}</div>
@@ -452,7 +452,7 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
           {state.isTyping && state.currentAIMessage && (
             <div className="flex justify-start">
               <div className="max-w-[80%]">
-                <div className="px-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-900 dark:text-white">
+                <div className="px-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-subtle text-gray-900 dark:text-white">
                   <div className="text-sm whitespace-pre-wrap">{state.currentAIMessage}</div>
                 </div>
               </div>
@@ -482,7 +482,7 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
 
       {/* Input Area */}
       {!state.isFinished && (
-        <div className="flex-shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-700/50 p-4">
+        <div className="flex-shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-t border-subtle p-4">
           <div className="w-full max-w-4xl mx-auto">
             <AIInputWarm
               value={state.input}
