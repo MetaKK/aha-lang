@@ -15,6 +15,7 @@ import { NovelReader } from './novel-reader';
 import { ScenePractice } from '@/components/quest/scene-practice';
 import { Settlement } from '@/components/quest/settlement';
 import { hasPassed } from '@/utils/score-calculator';
+import { shareUrl } from '@/lib/utils/share';
 import type { NovelContent, NovelChapter } from '@/lib/api/novel-mock-data';
 
 interface MultiChapterReaderProps {
@@ -84,12 +85,8 @@ export function MultiChapterReader({ novel, onClose, onComplete }: MultiChapterR
       )
     );
 
-    // 最后一章直接进入最终结算，其他章节进入小结算
-    if (isLastChapter) {
-      setCurrentPhase('final-settlement');
-    } else {
-      setCurrentPhase('settlement');
-    }
+    // 最后一章先进入小结算，然后再进入最终结算
+    setCurrentPhase('settlement');
   }, [currentChapterIndex, isLastChapter]);
 
   // 进入下一章（仅用于非最后一章）
@@ -114,10 +111,22 @@ export function MultiChapterReader({ novel, onClose, onComplete }: MultiChapterR
     setPracticeScore(0);
   }, []);
 
+  // 进入最终结算（用于最后一章的小结算之后）
+  const handleGoToFinalSettlement = useCallback(() => {
+    setCurrentPhase('final-settlement');
+  }, []);
+
   // 跳过练习（仅用于测试）
   const handleSkipPractice = useCallback(() => {
     handlePracticeComplete(85); // 给一个默认分数
   }, [handlePracticeComplete]);
+
+  const handleShareFinal = useCallback(async () => {
+    const totalScore = chapterProgress.reduce((sum, c) => sum + (c.practiceScore || 0), 0) / (chapterProgress.length || 1);
+    const title = `${novel.title} · Quest Results`;
+    const text = `I just completed "${novel.title}" quest! Avg score: ${Math.round(totalScore)}.`;
+    await shareUrl(window.location.href, title, text);
+  }, [chapterProgress, novel.title]);
 
   if (!currentChapter) {
     return (
@@ -221,8 +230,8 @@ export function MultiChapterReader({ novel, onClose, onComplete }: MultiChapterR
               score={practiceScore}
               passed={hasPassed(practiceScore)}
               onShare={() => {}}
-              onBackToFeed={handleNextChapter}
-              buttonText={`Continue to Chapter ${currentChapterIndex + 2}`}
+              onBackToFeed={isLastChapter ? handleGoToFinalSettlement : handleNextChapter}
+              buttonText={isLastChapter ? 'View Final Results' : `Continue to Chapter ${currentChapterIndex + 2}`}
             />
           </motion.div>
         ) : currentPhase === 'final-settlement' ? (
@@ -340,20 +349,19 @@ export function MultiChapterReader({ novel, onClose, onComplete }: MultiChapterR
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="flex justify-center space-x-4"
+                className="flex justify-center gap-4"
               >
                 <button
-                  onClick={onClose}
-                  className="px-8 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+                  onClick={handleShareFinal}
+                  className="px-6 py-3 bg-white text-purple-700 rounded-xl border border-purple-200 hover:bg-purple-50 transition-all transform hover:scale-105 active:scale-95 shadow"
                 >
-                  Close Quest
+                  Share Results
                 </button>
                 <button
-                  onClick={onComplete}
-                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 active:scale-95 shadow-lg flex items-center space-x-2"
+                  onClick={onClose}
+                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
                 >
-                  <span>Continue Learning</span>
-                  <ArrowRightIcon className="w-5 h-5" />
+                  Back to Home
                 </button>
               </motion.div>
             </div>
