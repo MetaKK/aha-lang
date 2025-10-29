@@ -421,23 +421,18 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
         className="flex-1 overflow-y-auto px-4 py-6 relative"
         style={{ scrollBehavior: "smooth" }}
       >
-        {/* 渐变银河背景 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-purple-900/30 to-pink-900/20 dark:from-indigo-900/40 dark:via-purple-900/50 dark:to-pink-900/40" />
+        {/* 夜空渐变背景 - 仅暗黑模式 */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 dark:block hidden opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-800/30 via-transparent to-slate-800/30 dark:block hidden" />
         
-        {/* 星空粒子效果 */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(50)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-white/60 dark:bg-white/80 rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
-            />
-          ))}
+        {/* 星星效果 - 仅暗黑模式 */}
+        <div className="absolute inset-0 dark:block hidden">
+          <div className="absolute top-10 left-10 w-1 h-1 bg-white rounded-full opacity-60 animate-pulse" />
+          <div className="absolute top-20 right-20 w-1 h-1 bg-white rounded-full opacity-40 animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-32 left-1/4 w-1 h-1 bg-white rounded-full opacity-50 animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-40 right-1/3 w-1 h-1 bg-white rounded-full opacity-30 animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <div className="absolute top-60 left-1/2 w-1 h-1 bg-white rounded-full opacity-45 animate-pulse" style={{ animationDelay: '1.5s' }} />
+          <div className="absolute top-80 right-1/4 w-1 h-1 bg-white rounded-full opacity-35 animate-pulse" style={{ animationDelay: '2.5s' }} />
         </div>
         <div className="max-w-4xl mx-auto space-y-4 relative z-10">
           {state.messages.map((message) => (
