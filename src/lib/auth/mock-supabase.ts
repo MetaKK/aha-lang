@@ -168,8 +168,14 @@ export class MockSupabaseAuth {
       callback('SIGNED_OUT', null);
     }
 
-    // 返回取消监听的函数
-    return () => {};
+    // 返回 Supabase 期望的格式
+    return {
+      data: {
+        subscription: {
+          unsubscribe: () => {}
+        }
+      }
+    };
   }
 }
 
