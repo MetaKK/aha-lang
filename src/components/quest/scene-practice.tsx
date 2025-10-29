@@ -334,7 +334,7 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
       </div>
 
       {/* Score Dashboard */}
-      <div className="flex-shrink-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-b border-subtle px-4 py-4">
+      <div className="flex-shrink-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-4 py-4">
         <div className="max-w-4xl mx-auto">
           {/* 总分和目标 */}
           <div className="flex items-center justify-between mb-3">
@@ -418,7 +418,7 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-6"
+        className="flex-1 overflow-y-auto px-4 py-6 "
         style={{ scrollBehavior: "smooth" }}
       >
         <div className="max-w-4xl mx-auto space-y-4">
