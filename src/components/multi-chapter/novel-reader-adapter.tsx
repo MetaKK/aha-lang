@@ -23,7 +23,7 @@ export function NovelReaderAdapter({ chapter, onComplete, onBack }: ChapterReadi
     title: 'Harry Potter Multi-Chapter Quest',
     author: 'J.K. Rowling',
     excerpt: 'An immersive multi-chapter quest through the magical world of Harry Potter',
-    coverImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=600&fit=crop&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=400&h=600&fit=crop&q=80',
     difficulty: 3, // 默认难度
     tags: ['fantasy', 'magic', 'adventure'],
     language: 'English',
