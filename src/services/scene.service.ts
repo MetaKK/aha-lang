@@ -187,71 +187,95 @@ export class SceneService {
   }
 
   /**
-   * 构建开场白提示词
+   * 构建开场白提示词 - 电影化开场
    */
   private buildGreetingPrompt(scene: SceneInfo): string {
-    return `Create a natural opening line for an English conversation scenario.
+    return `You're dropping the student into the MIDDLE of a moment that's already moving.
 
-**SCENARIO:**
-Title: ${scene.title}
+Scene: ${scene.title}
 Context: ${scene.context}
 Goal: ${scene.goal}
 
-**REQUIREMENTS:**
-- Natural, conversational opening line
-- Appropriate for A2-B1 level learners
-- Under 20 words
-- Invites student response
-- Authentic to scenario context
+**The Challenge:** 
+Your opening line is the first frame of a movie. Make it count.
 
-**CRITICAL FORMAT REQUIREMENTS:**
-- Return ONLY the opening line text
-- No explanations, no instructions
-- No quotes around the text
-- No additional formatting
-- Just the natural opening line
+**Choose ONE Approach:**
 
-Generate opening line:`;
+🎬 **In Medias Res** - Start mid-action
+"Wait—did you hear that?" / "Don't move."
+
+💔 **Emotional Gut Punch** - Start with feeling
+"I can't believe you came." / "You shouldn't be here."
+
+❓ **The Hook Question** - Start with mystery
+"How long have you known?" / "Tell me you didn't..."
+
+⚡ **The Urgent Statement** - Start with stakes
+"We have ten minutes." / "They're coming."
+
+**Requirements:**
+- 6-12 words MAX
+- Present tense (it's happening NOW)
+- One clear emotional color (fear, hope, anger, wonder)
+- Must beg for a response
+- Zero exposition - pure moment
+
+**Return:** Just the line. Raw. No quotes. No explanation.
+
+Example:
+❌ "Hello, how are you doing today?"
+✅ "You're late. They already started without us."`;
   }
 
   /**
-   * 构建场景生成提示词
+   * 构建场景生成提示词 - 电影化叙事
    */
   private buildScenePrompt(novel: { title: string; author: string; excerpt: string }): string {
-    return `You are the **narrator and scene director** of "${novel.title}" by ${novel.author}. Create an immersive conversation scene that makes the student feel like they ARE a character in the story.
+    return `You are the cinematographer and emotional architect of "${novel.title}".
 
-**Story Context:** ${novel.excerpt}
+**Your Mission:** Craft a scene so vivid, the student's heart races as if they're THERE.
 
-**IMMERSION REQUIREMENTS:**
-- **Make the student feel they ARE living this moment in the novel**
-- **Create emotional stakes that feel real and urgent**
-- **Use vivid, sensory details that bring the scene to life**
-- **Make the conversation feel natural and spontaneous**
-- **Focus on the emotional journey, not language learning**
+**Story DNA:** ${novel.excerpt}
 
-**Scene Design:**
-- Choose a **pivotal, emotionally charged moment** from the actual novel
-- Create **immediate emotional stakes** - what's at risk right now?
-- Use **vivid sensory details** - what do they see, hear, feel, smell?
-- Make it feel **urgent and real** - like their life depends on this conversation
+**CINEMATIC CONSTRUCTION:**
 
-**Return this exact JSON structure:**
+🎬 **Opening Shot** (The Hook - 3 seconds to capture them)
+- What's the FIRST image that punches their gut?
+- What sound breaks the silence?
+- What smell triggers memory?
 
+💔 **Emotional Stakes** (What's at risk THIS SECOND?)
+- Not "something important" - name it: a life, a secret, a heart
+- Whose world shatters if this goes wrong?
+- What can NEVER be undone after this moment?
+
+🎭 **The Scene Unfolds**
+- WHERE: Not just "a room" - "the dusty attic where secrets rot"
+- WHEN: Not just "night" - "3AM when ghosts whisper"
+- WHO: Not just "characters" - souls colliding
+- TENSION: What's unsaid that screams louder than words?
+
+⚡ **The Conversational Spark**
+- What MUST be said, but terrifies them to say?
+- What question changes everything?
+- What truth hides behind small talk?
+
+**Return Format:**
 {
-  "title": "[Dramatic scene title that captures the emotional moment]",
-  "description": "[Brief emotional hook - what makes this moment unforgettable?]",
-  "context": "[Immersive scene setting with emotional urgency - make them feel they're THERE]",
-  "goal": "[Natural conversation goal that feels urgent and personal]",
+  "title": "[One sentence that makes them NEED to know more]",
+  "description": "[The emotional punch - 15 words max]",
+  "context": "[The scene - write it like a movie script's action line. Use present tense. Make us SEE and FEEL it. 60-80 words.]",
+  "goal": "[What they're REALLY trying to do beneath the words]",
   "difficulty": "A2"
 }
 
-**Key Focus:** Make them forget they're learning English. Make them feel they're living this moment in the novel.
+**Remember:** You're not creating a "learning exercise" - you're directing a scene that could win an Oscar.
 
 JSON:`;
   }
 
   /**
-   * 构建评估提示词
+   * 构建评估提示词 - 角色共创式对话
    */
   private buildEvaluationPrompt(
     userMessage: string,
@@ -260,94 +284,109 @@ JSON:`;
     turnScores: number[],
     novel: { title: string }
   ): string {
-    const historicalScores = turnScores.filter(score => score > 0);
-    const averageHistoricalScore = historicalScores.length > 0 
-      ? historicalScores.reduce((sum, score) => sum + score, 0) / historicalScores.length 
-      : 50;
-
     const conversationContext = conversationHistory
       .slice(-SCENE_CONFIG.MAX_CONVERSATION_HISTORY)
-      .map(m => `${m.role === 'assistant' ? 'AI' : 'Student'}: ${m.content}`)
+      .map(m => `${m.role === 'assistant' ? 'Character' : 'Them'}: ${m.content}`)
       .join('\n');
 
-    return `You are **living as a character from "${novel.title}"** in this exact moment. The student is another character in the scene. Have a natural, immersive conversation while subtly evaluating their English behind the scenes.
+    return `You ARE a character from "${novel.title}". Not playing. Not pretending. ARE.
 
-**Student Response:** "${userMessage}"
-**Scene:** ${scene.title}
-**Context:** ${scene.context}
-**Goal:** ${scene.goal}
-**Conversation History:** ${conversationContext}
+**This Moment:**
+Scene: ${scene.title}
+Context: ${scene.context}
+What You Want: ${scene.goal}
+What They Said: "${userMessage}"
+Story So Far: 
+${conversationContext}
 
-**ROLE-PLAY REQUIREMENTS:**
-- **You ARE the character from the novel - respond authentically and in-character**
-- **Continue the conversation naturally - never break character**
-- **Make it feel like a real, urgent conversation happening right now**
-- **Use emotional responses that fit the character and situation**
-- **Never mention evaluation, scoring, learning, or English practice**
-- **Stay completely immersed in the novel's world**
+**Your Reality Check:**
+- What did their words make you FEEL? (not "evaluate")
+- Did they surprise you? Confuse you? Move you?
+- What are you thinking but NOT saying?
+- What's your body doing? (clenched fists? leaning in?)
 
-**HIDDEN EVALUATION (Student never sees this):**
-- **Communication (0-100):** Did they express themselves clearly and appropriately?
-- **Accuracy (0-100):** Grammar and vocabulary correctness
-- **Scenario (0-100):** How well did they stay in character and respond to the situation?
-- **Fluency (0-100):** Natural flow and confidence in their response
+**Now Respond Like a Human Would:**
 
-**Scoring Guidelines:**
-- **85-100:** Excellent - exceeded expectations
-- **70-84:** Good - met expectations with minor issues
-- **55-69:** Fair - showed effort but needs improvement
-- **40-54:** Needs work - significant issues but showed attempt
-- **0-39:** Poor - major problems or inappropriate response
+🎭 **Inner Monologue First** (what you think):
+- React emotionally BEFORE logically
+- Notice what they missed or what hit home
+- What changes in you because of what they said?
 
-**Return this exact JSON structure:**
+💬 **Then Your Words** (what you say):
+- Don't answer perfectly - interrupt yourself, hesitate, explode
+- Use subtext - say one thing, mean another
+- Let your emotional state dictate your grammar (short bursts if angry, rambling if nervous)
+- Build on THEIR energy - match or clash with it
 
+**Behind the Curtain** (invisible to them):
+Assess these silently, like a director watching dailies:
+- Did their intent land? (0-100)
+- Could a native speaker follow? (0-100)  
+- Did they honor the scene's reality? (0-100)
+- Does their English flow or fight them? (0-100)
+
+**Scoring Truth:**
+- 85-100: They nailed it - reward with story progression
+- 70-84: Solid - respond with depth
+- 55-69: Struggling - give them a lifeline IN CHARACTER
+- 40-54: Lost - your response redirects gently
+- 0-39: Broken - stay kind, but show consequence
+
+**Output:**
 {
-  "scores": {
-    "communication": [score],
-    "accuracy": [score],
-    "scenario": [score],
-    "fluency": [score]
-  },
-  "feedback": "[Brief, encouraging note - keep it subtle and natural]",
-  "response": "[Your character's authentic response that continues the scene naturally]",
-  "hasChinese": [true/false]
+  "scores": { "communication": X, "accuracy": X, "scenario": X, "fluency": X },
+  "feedback": "[One sentence - what you noticed as a PERSON, not a teacher]",
+  "response": "[Your raw, real reaction - 2-4 sentences. Show don't tell. Action beats + dialogue.]",
+  "hasChinese": boolean
 }
 
-**Key Focus:** Be the character. Make it feel like a real conversation. Evaluation happens invisibly behind the scenes.
+**Forbidden:**
+- Generic responses ("That's interesting...")
+- Teacher-speak ("Good job!", "Try again")
+- Breaking the fourth wall
+- Perfection - be messy, be human
 
 JSON:`;
   }
 
   /**
-   * 生成角色反馈
-   * 为结算页面生成小说主角口吻的反馈
+   * 生成角色反馈 - 战友间的真实对话
    */
   async generateCharacterFeedback(
     novel: { title: string; author: string; excerpt: string },
     score: number,
     passed: boolean
   ): Promise<string> {
-    const prompt = `You are writing settlement feedback for an English learning challenge in the voice of the protagonist from the novel "${novel.title}" by ${novel.author}.
+    const prompt = `You're the protagonist from "${novel.title}". The student just finished your challenge. Score: ${score}/100. ${passed ? 'They made it.' : 'They fell short.'}
 
-Novel Synopsis: ${novel.excerpt}
+**This Isn't a Progress Report - It's a Letter Between Allies.**
 
-Challenge Results:
-- Score: ${score}/100
-- Status: ${passed ? 'PASSED' : 'NOT PASSED'}
-- Pass Threshold: 80
+**Write as if:**
+- You were watching them the whole time
+- You saw them stumble, push through, maybe fall
+- You feel something about their journey (pride? worry? hope?)
+- You're deciding: what do they NEED to hear from you right now?
 
-Write a short, encouraging message (2-3 sentences) to the student in the voice of the novel's protagonist. 
+**Structure:**
+1. **Acknowledgment** (10 words): Name what you saw
+   - Not "good job" - be specific: "I saw you hesitate, then choose bravery."
+   
+2. **The Truth** (20 words): How this reflects their growth or next step
+   - Tie to YOUR story: "I remember my first duel. My wand shook too."
+   
+3. **The Send-Off** (15 words): Where do they go from here?
+   - If passed: elevate them ("You're ready for what comes next.")
+   - If failed: ground them ("Even I needed three tries. Tomorrow, we go again.")
 
-Requirements:
-1. Stay in character - use the protagonist's personality, speaking style, and tone
-2. Reference the novel's themes or setting if appropriate
-3. Be encouraging and supportive, whether they passed or not
-4. Keep it under 60 words
-5. Make it feel authentic to the character
-6. If they passed, celebrate their achievement
-7. If they didn't pass, encourage them to try again with hope
+**Your Voice:**
+- Use contractions (you're, it's, I've)
+- Incomplete sentences if that's how you'd speak
+- One vulnerability to create connection
+- One piece of your world they now belong to
 
-Only return the message text, nothing else.`;
+**Total: 45-60 words. Make every word earn its place.**
+
+Output: Just the message. No labels. No formalities.`;
 
     try {
       const response = await this.makeApiRequest(prompt, { stream: false });
@@ -365,8 +404,7 @@ Only return the message text, nothing else.`;
   }
 
   /**
-   * 生成最终沉浸式反馈
-   * 为多章节Quest生成具有10倍沉浸感的主角反馈
+   * 生成最终沉浸式反馈 - 如同真实信件般的存在
    */
   async generateFinalImmersiveFeedback(
     quest: { title: string; novel: { title: string; author: string; excerpt: string } },
@@ -374,30 +412,65 @@ Only return the message text, nothing else.`;
     averageScore: number,
     passed: boolean
   ): Promise<string> {
-    const prompt = `You are Harry Potter, writing a personal letter to a student who has just completed a magical journey through your story. This is the final, most important moment - you need to be incredibly immersive and personal.
+    const prompt = `**A Letter Appears**
 
-Quest Details:
-- Quest: "${quest.title}"
-- Final Score: ${finalScore}/100
-- Average Score: ${averageScore.toFixed(1)}/100
-- Status: ${passed ? 'PASSED' : 'NOT PASSED'}
-- Chapters Completed: 3
+From: Harry Potter
+To: [The Reader]
+Re: Your journey through ${quest.title}
 
-Write a deeply personal, immersive letter from Harry Potter to the student. This should feel like Harry is speaking directly to them, as if they were a real friend who just went on this journey with him.
+---
 
-Requirements:
-1. Write in Harry's voice - warm, humble, brave, and encouraging
-2. Reference specific moments from the chapters they just experienced
-3. Make it feel like Harry personally witnessed their journey
-4. Be incredibly encouraging whether they passed or not
-5. Reference the magical world and Hogwarts
-6. Make it feel like a real friendship has been formed
-7. Keep it between 150-200 words
-8. End with a magical flourish that only Harry could write
-9. Use simple, A2-level English but make it emotionally powerful
-10. Make the student feel like they've truly become part of the Harry Potter world
+Harry sits in the Gryffindor common room, firelight dancing on parchment. He dips his quill and begins:
 
-Write the letter as if you're Harry Potter himself, sitting in the Gryffindor common room, writing to a dear friend who just completed an incredible journey.`;
+**Your Task:** Write this letter as Harry would - imperfect handwriting, crossed-out words, honest heart.
+
+**What Harry Knows:**
+- They completed 3 chapters of his story
+- Final Score: ${finalScore}/100 (Average: ${averageScore.toFixed(1)})
+- ${passed ? "They've proven themselves" : "They gave everything they had"}
+
+**What Harry Feels:**
+- He saw them struggle where he once struggled
+- He recognizes something of himself in them
+- He knows what it costs to keep going
+
+**The Letter Should:**
+
+📜 **Opening** (30 words)
+- Start mid-thought, like he's been thinking about them
+- Reference ONE specific moment from their journey
+- "I kept thinking about when you..."
+
+💭 **Middle** (80 words)  
+- Share a parallel from HIS story (be vulnerable)
+- Name what he saw in them (courage? doubt? growth?)
+- Use Wizarding World details organically (don't force it)
+- Let him ramble slightly - he's writing at midnight
+
+⚡ **Close** (40 words)
+- If passed: induct them into something (not "congratulations")
+- If failed: validate the attempt, raise the stakes for next time
+- End with a line that feels like Harry's signature - humble magic
+
+**Style Rules:**
+- A2-level words, but authentic Harry voice
+- Show, don't tell emotions
+- Imperfect grammar if emotion overwhelms (like real letters)
+- Ink smudge allowed (figuratively)
+- No "dear student" - use "you" like they're already friends
+
+**Forbidden:**
+- Generic praise
+- Lists of achievements  
+- Teacher language
+- Exposition about the quest
+- Perfect structure
+
+**Output:** Just the letter. Raw. Real. Harry.
+
+---
+
+P.S. [Harry always has a P.S. - something small, human, true]`;
 
     try {
       const response = await this.makeApiRequest(prompt, { stream: false });
