@@ -131,31 +131,6 @@ export function MultiChapterQuest({ quest, onComplete, onBack }: MultiChapterQue
         </motion.div>
       </AnimatePresence>
 
-      {/* 进度指示器 - 仅在非最终结算时显示 */}
-      {state.currentStep !== 'final-settlement' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50"
-        >
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-full px-4 py-2 shadow-lg border border-gray-200/50 dark:border-gray-700/50">
-            <div className="flex items-center gap-3">
-              <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Chapter {state.currentChapterIndex + 1} of {quest.chapters.length}
-              </div>
-              <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-300"
-                  style={{ width: `${((state.currentChapterIndex + 1) / quest.chapters.length) * 100}%` }}
-                />
-              </div>
-              <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {Math.round(((state.currentChapterIndex + 1) / quest.chapters.length) * 100)}%
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }
