@@ -194,22 +194,113 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
     }
   }, [state, actions, computed, sceneService, novel, typeText, onComplete]);
 
-  // 加载场景中
+  // 加载场景中 - 电影化过渡
   if (!state.scene || state.isGeneratingScene) {
     return (
-      <div className="fixed inset-0 w-full h-full overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center animate-pulse">
-            <SparklesIcon className="w-8 h-8 text-white" />
-          </div>
-          <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Generating your scenario...
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            This may take a few seconds
-          </p>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 w-full h-full overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+      >
+        {/* 背景动画粒子 */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              rotate: [0, 180, 360],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-200/20 dark:bg-amber-500/10 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{
+              scale: [1.2, 1, 1.2],
+              rotate: [360, 180, 0],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-200/20 dark:bg-orange-500/10 rounded-full blur-3xl"
+          />
         </div>
-      </div>
+
+        {/* 主内容 */}
+        <div className="relative z-10 flex items-center justify-center h-full p-4">
+          <div className="text-center max-w-md">
+            {/* 魔法圆环 */}
+            <div className="relative w-24 h-24 mx-auto mb-6">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 rounded-full border-4 border-amber-300/30 dark:border-amber-500/30"
+                style={{
+                  borderTopColor: 'transparent',
+                  borderRightColor: 'transparent',
+                }}
+              />
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-2 rounded-full border-4 border-orange-400/40 dark:border-orange-500/40"
+                style={{
+                  borderBottomColor: 'transparent',
+                  borderLeftColor: 'transparent',
+                }}
+              />
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                  <SparklesIcon className="w-6 h-6 text-white" />
+                </div>
+              </motion.div>
+            </div>
+
+            {/* 文字提示 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-3">
+                Preparing Your Scene
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-2">
+                Crafting an immersive story moment just for you...
+              </p>
+              
+              {/* 加载步骤 */}
+              <motion.div className="mt-6 space-y-2">
+                {['Choosing the perfect scene', 'Building atmosphere', 'Creating dialogue'].map((step, index) => (
+                  <motion.div
+                    key={step}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + index * 0.3 }}
+                    className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-500"
+                  >
+                    <motion.div
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.5, repeat: Infinity, delay: index * 0.2 }}
+                      className="w-1.5 h-1.5 rounded-full bg-amber-500"
+                    />
+                    <span>{step}</span>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
     );
   }
 

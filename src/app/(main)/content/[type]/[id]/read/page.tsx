@@ -45,12 +45,8 @@ export default function ContentReadPage() {
   };
 
   const handleComplete = () => {
-    // 根据内容类型导航到不同的挑战页面
-    if (contentType === 'novel') {
-      router.push(`/content/${contentType}/${contentId}/challenge`);
-    } else if (contentType === 'quest') {
-      router.push(`/content/${contentType}/${contentId}/practice`);
-    }
+    // 阅读完成后统一进入场景练习模式
+    router.push(`/content/${contentType}/${contentId}/practice`);
   };
 
   if (loading) {
