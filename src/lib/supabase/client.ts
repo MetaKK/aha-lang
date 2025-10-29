@@ -28,8 +28,16 @@ export function getSupabaseClient() {
     return mockClient as any;
   }
 
-  // 如果未启用后端同步，返回null
+  // 如果未启用后端同步，返回null（但允许Mock Auth在预览环境工作）
   if (!isBackendSyncEnabled()) {
+    // 在预览环境且启用了Mock Auth时，也返回Mock客户端
+    if (process.env.VERCEL_ENV === 'preview' && isMockAuthEnabled()) {
+      if (!mockClient) {
+        mockClient = createMockSupabaseClient();
+        console.log('[Supabase] Mock authentication enabled in preview');
+      }
+      return mockClient as any;
+    }
     console.log('[Supabase] Backend sync disabled, using mock data');
     return null;
   }
