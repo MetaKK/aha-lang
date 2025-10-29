@@ -105,6 +105,15 @@ export function isLocalDevelopment(): boolean {
   const isPreview = process.env.VERCEL_ENV === 'preview';
   const isMockEnabled = process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true';
   
+  console.log('[Mock Auth] Environment check:', {
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    isDev,
+    isPreview,
+    isMockEnabled,
+    result: (isDev || isPreview) && isMockEnabled
+  });
+  
   return (isDev || isPreview) && isMockEnabled;
 }
 

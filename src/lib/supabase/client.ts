@@ -19,6 +19,15 @@ let supabaseClient: ReturnType<typeof createBrowserClient<Database>> | null = nu
 let mockClient: ReturnType<typeof createMockSupabaseClient> | null = null;
 
 export function getSupabaseClient() {
+  // 调试信息
+  console.log('[Supabase] Environment check:', {
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    isMockAuthEnabled: isMockAuthEnabled(),
+    isLocalDevelopment: isLocalDevelopment(),
+    isBackendSyncEnabled: isBackendSyncEnabled()
+  });
+
   // 如果启用了模拟认证，返回模拟客户端（本地开发或预览环境）
   if (isMockAuthEnabled() && isLocalDevelopment()) {
     if (!mockClient) {
