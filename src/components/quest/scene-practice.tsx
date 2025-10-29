@@ -418,10 +418,28 @@ export function ScenePractice({ novel, onComplete, onBack }: ScenePracticeProps)
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-6 "
+        className="flex-1 overflow-y-auto px-4 py-6 relative"
         style={{ scrollBehavior: "smooth" }}
       >
-        <div className="max-w-4xl mx-auto space-y-4">
+        {/* 渐变银河背景 */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-purple-900/30 to-pink-900/20 dark:from-indigo-900/40 dark:via-purple-900/50 dark:to-pink-900/40" />
+        
+        {/* 星空粒子效果 */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(50)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-white/60 dark:bg-white/80 rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 2}s`,
+              }}
+            />
+          ))}
+        </div>
+        <div className="max-w-4xl mx-auto space-y-4 relative z-10">
           {state.messages.map((message) => (
             <div
               key={message.id}
