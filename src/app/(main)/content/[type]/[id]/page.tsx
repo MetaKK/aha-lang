@@ -102,9 +102,9 @@ export default function ContentDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading content...</p>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function ContentDetailPage() {
 
   if (!content) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center px-6">
           <XCircleIcon className="w-20 h-20 text-red-500 mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
@@ -124,7 +124,7 @@ export default function ContentDetailPage() {
           </p>
           <button
             onClick={handleBack}
-            className="px-8 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-semibold"
+            className="px-8 py-3 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors font-semibold"
           >
             Go Back
           </button>
@@ -136,7 +136,7 @@ export default function ContentDetailPage() {
   const availableModes = getAvailableModes(contentType);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-subtle">
         <div className="flex items-center justify-between px-4 py-3 max-w-4xl mx-auto">
@@ -151,9 +151,9 @@ export default function ContentDetailPage() {
           </button>
           
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 rounded-lg">
-              <BookOpenIcon className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+              <BookOpenIcon className="w-4 h-4 text-amber-700 dark:text-amber-300" />
+              <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
                 {contentType === 'novel' ? 'Novel' : contentType === 'quest' ? 'Quest' : 'Content'}
               </span>
             </div>
@@ -177,6 +177,15 @@ export default function ContentDetailPage() {
                 className="w-48 h-72 rounded-2xl shadow-2xl object-cover mx-auto"
               />
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/50 to-transparent" />
+              {/* Cover meta info (top-left) */}
+              <div className="absolute top-3 left-3 right-3 text-left">
+                <div
+                  className="text-[11px] sm:text-xs md:text-sm text-white/70"
+                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.45)' }}
+                >
+                  Chapters {content.chapters.length} · Level {content.difficulty || 'A2'} · {content.estimatedTime || '15 min'}
+                </div>
+              </div>
               <div className="absolute bottom-4 left-4 right-4 text-white">
                 <div className="text-sm font-medium opacity-90">{content.author}</div>
                 <div className="text-lg font-bold">{content.title}</div>
@@ -191,7 +200,7 @@ export default function ContentDetailPage() {
             transition={{ delay: 0.1 }}
             className="text-4xl font-bold text-center mb-4"
           >
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
               {content.title}
             </span>
           </motion.h1>
@@ -224,7 +233,7 @@ export default function ContentDetailPage() {
                 whileTap={{ scale: 0.98 }}
                 className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-6 text-center border border-subtle hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all group"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                   <mode.icon className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-lg font-bold text-gray-900 dark:text-white mb-2">
@@ -237,37 +246,6 @@ export default function ContentDetailPage() {
             ))}
           </motion.div>
 
-          {/* Content Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-6 border border-subtle mb-8"
-          >
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Content Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary mb-1">
-                  {content.chapters.length}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Chapters</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary mb-1">
-                  {content.difficulty || 'A2'}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Level</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary mb-1">
-                  {content.estimatedTime || '15 min'}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Duration</div>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </div>
     </div>

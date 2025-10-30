@@ -55,27 +55,27 @@ interface ReadingTheme {
   readonly colors: ThemeColors;
 }
 
-// 阅读主题配置 - Pixar动画风格 + 科技感
+// 阅读主题配置 - 与练习页统一的暖色/深色科技感
 const READING_THEMES: Record<string, ReadingTheme> = {
   light: {
     id: 'light',
     name: 'Light',
-    // Pixar风格：明亮、充满想象力的渐变
-    background: 'bg-gradient-to-br from-[#E3F2FD] via-[#F3E5F5] to-[#FFF9C4]',
+    // 与 practice 场景统一：暖色渐变
+    background: 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50',
     text: 'text-gray-900',
     secondary: 'text-gray-600',
-    // Pixar主色：活泼的蓝紫渐变
-    accent: 'from-[#42A5F5] to-[#AB47BC]',
-    firstLetter: 'from-[#1E88E5] via-[#5E35B1] to-[#D81B60]',
-    glow: 'shadow-blue-400/30',
+    // 与 practice 场景统一：琥珀橙渐变强调色
+    accent: 'from-amber-500 to-orange-500',
+    firstLetter: 'from-amber-500 via-orange-500 to-yellow-500',
+    glow: 'shadow-amber-400/30',
     icon: SunIcon,
     // 设计系统色号
     colors: {
-      primary: '#42A5F5',    // 皮克斯蓝
-      secondary: '#AB47BC',  // 想象紫
-      accent: '#FF6F00',     // 活力橙
-      surface: '#E3F2FD',    // 天空蓝
-      text: '#1A237E',       // 深海蓝
+      primary: '#f59e0b',    // amber-500
+      secondary: '#f97316',  // orange-500
+      accent: '#fbbf24',     // amber-400
+      surface: '#fffbeb',    // amber-50
+      text: '#1f2937',       // gray-800
     }
   },
   sepia: {
@@ -100,20 +100,20 @@ const READING_THEMES: Record<string, ReadingTheme> = {
   night: {
     id: 'night',
     name: 'Night',
-    // 神秘深空科技感
-    background: 'bg-gradient-to-br from-[#000000] via-[#0A1929] to-[#001E3C]',
+    // 与 practice 场景统一：深色石板渐变
+    background: 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900',
     text: 'text-gray-200',
     secondary: 'text-gray-500',
-    accent: 'from-[#2196F3] to-[#9C27B0]',
-    firstLetter: 'from-[#00B8D4] via-[#651FFF] to-[#D500F9]',
-    glow: 'shadow-cyan-500/40',
+    accent: 'from-amber-500 to-orange-500',
+    firstLetter: 'from-amber-400 via-orange-500 to-yellow-400',
+    glow: 'shadow-amber-500/30',
     icon: MoonIcon,
     colors: {
-      primary: '#2196F3',
-      secondary: '#9C27B0',
-      accent: '#00E5FF',
-      surface: '#0A1929',
-      text: '#B2EBF2',
+      primary: '#f59e0b',    // amber-500
+      secondary: '#f97316',  // orange-500
+      accent: '#fbbf24',     // amber-400
+      surface: '#111827',    // gray-900
+      text: '#e5e7eb',       // gray-200
     }
   },
 } as const;

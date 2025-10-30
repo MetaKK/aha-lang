@@ -417,28 +417,104 @@ Harry didn't know, but he had a feeling that his life was about to change. And h
       }
     ]
   },
+  // Peppa Pig A1 简单Quest（热门章节）
+  'peppa-001': {
+    id: 'peppa-001',
+    title: 'Peppa Pig: Muddy Puddles',
+    author: 'Peppa Pig',
+    excerpt: 'Peppa and George love jumping in muddy puddles. But first, they must wear their boots!',
+    coverImage: 'https://picsum.photos/seed/peppa-001/400/600',
+    difficulty: 1,
+    tags: ['Kids', 'Family', 'Daily Life'],
+    language: 'English',
+    estimatedTime: '3 min',
+    chapters: [{ id: 'pp-001-ch1', number: 1, title: 'Muddy Puddles', content: 'Peppa and George go outside. It is raining. They see a muddy puddle. They put on boots and jump! Splash!', wordCount: 80, estimatedReadTime: 2 }],
+  },
+  'peppa-002': {
+    id: 'peppa-002',
+    title: 'Peppa Pig: The Tooth Fairy',
+    author: 'Peppa Pig',
+    excerpt: 'Peppa loses a tooth. She puts it under her pillow for the Tooth Fairy.',
+    coverImage: 'https://picsum.photos/seed/peppa-002/400/600',
+    difficulty: 1,
+    tags: ['Kids', 'Family', 'Daily Life'],
+    language: 'English',
+    estimatedTime: '3 min',
+    chapters: [{ id: 'pp-002-ch1', number: 1, title: 'The Tooth Fairy', content: 'Peppa wiggles her tooth. It falls out! She puts it under her pillow. In the morning, there is a shiny coin.', wordCount: 80, estimatedReadTime: 2 }],
+  },
+  'peppa-003': {
+    id: 'peppa-003',
+    title: 'Peppa Pig: Picnic',
+    author: 'Peppa Pig',
+    excerpt: 'The family goes on a picnic. They eat sandwiches and play games.',
+    coverImage: 'https://picsum.photos/seed/peppa-003/400/600',
+    difficulty: 1,
+    tags: ['Kids', 'Food', 'Outdoor'],
+    language: 'English',
+    estimatedTime: '3 min',
+    chapters: [{ id: 'pp-003-ch1', number: 1, title: 'Picnic Time', content: 'Peppa and her family pack a basket. They sit on a blanket. They share fruit and sandwiches. It is a happy day.', wordCount: 85, estimatedReadTime: 2 }],
+  },
+  'peppa-004': {
+    id: 'peppa-004',
+    title: 'Peppa Pig: The Playground',
+    author: 'Peppa Pig',
+    excerpt: 'Peppa meets friends at the playground. They slide, swing, and laugh.',
+    coverImage: 'https://picsum.photos/seed/peppa-004/400/600',
+    difficulty: 1,
+    tags: ['Kids', 'Play', 'Friends'],
+    language: 'English',
+    estimatedTime: '3 min',
+    chapters: [{ id: 'pp-004-ch1', number: 1, title: 'Play Together', content: 'Peppa runs to the slide. George goes to the swing. Suzy Sheep joins them. They play and take turns.', wordCount: 85, estimatedReadTime: 2 }],
+  },
+  'peppa-005': {
+    id: 'peppa-005',
+    title: 'Peppa Pig: Bedtime',
+    author: 'Peppa Pig',
+    excerpt: 'It is bedtime. Peppa brushes her teeth and listens to a story.',
+    coverImage: 'https://picsum.photos/seed/peppa-005/400/600',
+    difficulty: 1,
+    tags: ['Kids', 'Daily Routine', 'Family'],
+    language: 'English',
+    estimatedTime: '3 min',
+    chapters: [{ id: 'pp-005-ch1', number: 1, title: 'Good Night', content: 'Peppa puts on pajamas. She brushes her teeth. Daddy Pig reads a story. “Good night,” says Peppa.', wordCount: 70, estimatedReadTime: 2 }],
+  },
 };
 
-// 统一的内容获取函数
-export function getContentById(id: string): NovelContent | undefined {
-  // 直接查找小说
-  const novel = getNovelById(id);
+// 通用解析：根据ID在多处数据源中解析内容
+function resolveContentById(rawId: string): NovelContent | undefined {
+  // 1) 直接命中：内置单篇小说
+  const novel = getNovelById(rawId);
   if (novel) return novel;
-  
-  // Quest ID映射
+
+  // 2) 专题合集：刘慈欣短篇
+  const liu = getLiuCixinStoryById(rawId);
+  if (liu) return liu;
+
+  // 3) 特殊Quest配置（HP、Peppa等）
+  const special = (QUEST_CONTENT_CONFIG as Record<string, Partial<NovelContent>>)[rawId];
+  if (special) return special as NovelContent;
+
+  return undefined;
+}
+
+// 统一的内容获取函数（健壮映射）
+export function getContentById(id: string): NovelContent | undefined {
+  // 先尝试原始ID
+  const direct = resolveContentById(id);
+  if (direct) return direct;
+
+  // 通用Quest前缀映射：形如 quest-<baseId> → <baseId>
+  if (id.startsWith('quest-')) {
+    const baseId = id.slice('quest-'.length);
+    const mapped = resolveContentById(baseId);
+    if (mapped) return mapped;
+  }
+
+  // 向后兼容：老的手动映射（保留示例）
   if (id === 'quest-novel-001') {
     return getNovelById('novel-001');
   }
-  
-  // Harry Potter Quest
-  if (id === 'hp-quest' || id === 'hp-a2') {
-    return QUEST_CONTENT_CONFIG['hp-quest'] as NovelContent;
-  }
-  
-  // 刘慈欣小说
-  const liuCixinStory = getLiuCixinStoryById(id);
-  if (liuCixinStory) return liuCixinStory;
-  
+
   return undefined;
 }
 

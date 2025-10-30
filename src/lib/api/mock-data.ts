@@ -51,9 +51,56 @@ export const createMockData = (): FeedCard[] => {
     },
   }));
 
+  // 创建小猪佩奇 A1 Quest 卡片（5张）
+  const peppaQuests = [
+    { id: 'peppa-001', title: 'Muddy Puddles', excerpt: 'Peppa and George love jumping in muddy puddles.', cover: 'https://picsum.photos/seed/peppa-001/400/600', eta: '3 min' },
+    { id: 'peppa-002', title: 'The Tooth Fairy', excerpt: 'Peppa loses a tooth and meets the Tooth Fairy.', cover: 'https://picsum.photos/seed/peppa-002/400/600', eta: '3 min' },
+    { id: 'peppa-003', title: 'Picnic', excerpt: 'The family enjoys a sunny picnic together.', cover: 'https://picsum.photos/seed/peppa-003/400/600', eta: '3 min' },
+    { id: 'peppa-004', title: 'The Playground', excerpt: 'Peppa meets friends and plays at the park.', cover: 'https://picsum.photos/seed/peppa-004/400/600', eta: '3 min' },
+    { id: 'peppa-005', title: 'Bedtime', excerpt: 'It’s bedtime with brushing and a story.', cover: 'https://picsum.photos/seed/peppa-005/400/600', eta: '3 min' },
+  ];
+
+  const peppaQuestCards: FeedCard[] = peppaQuests.map((q, idx) => ({
+    id: `quest-${q.id}`,
+    type: 'novel',
+    author: {
+      id: `author-${q.id}`,
+      handle: 'ahalearn',
+      displayName: 'Aha Learning',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ahalearn',
+      verified: true,
+      badges: ['verified', 'organization'],
+    },
+    content: `🧸 A1 Quest: Peppa Pig — ${q.title}. Short and fun practice for beginners!`,
+    createdAt: new Date(baseTime - 1000 * 30 * (idx + 1)).toISOString(),
+    stats: {
+      replies: Math.floor(Math.random() * 15) + 5,
+      reposts: Math.floor(Math.random() * 30) + 10,
+      likes: Math.floor(Math.random() * 120) + 40,
+      bookmarks: Math.floor(Math.random() * 50) + 15,
+      views: Math.floor(Math.random() * 900) + 300,
+    },
+    viewer: { liked: false, reposted: false, bookmarked: false },
+    novel: {
+      id: q.id,
+      title: `Peppa Pig: ${q.title}`,
+      excerpt: q.excerpt,
+      coverImage: q.cover,
+      difficulty: 1,
+      totalChapters: 1,
+      currentChapter: 1,
+      tags: ['Kids', 'A1', 'Peppa Pig'],
+      language: 'English',
+      estimatedTime: q.eta,
+      questType: 'comprehension',
+    },
+  }));
+
   const items: FeedCard[] = [
     // 添加Twitter内容
     ...TWITTER_CONTENT,
+    // 添加Peppa Pig A1 Quest卡片
+    ...peppaQuestCards,
     
     // 添加刘慈欣小说Quest卡片
     ...liuCixinQuestCards,
