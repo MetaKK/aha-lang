@@ -185,9 +185,9 @@ export default function ContentChallengePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading challenge...</p>
         </div>
       </div>
@@ -196,14 +196,14 @@ export default function ContentChallengePage() {
 
   if (!content || !quest) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <XCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Content Not Found</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-4">This content doesn't exist or has been removed.</p>
           <button
             onClick={handleBack}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
           >
             Go Back
           </button>
@@ -215,9 +215,9 @@ export default function ContentChallengePage() {
   const currentQ = quest.questions[currentQuestion];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
+      <div className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={handleBack}
@@ -228,7 +228,7 @@ export default function ContentChallengePage() {
           
           <div className="flex items-center space-x-4">
             {timeRemaining !== null && (
-              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                 <ClockIcon className="w-4 h-4" />
                 <span className="font-mono">{formatTime(timeRemaining)}</span>
               </div>
@@ -250,7 +250,7 @@ export default function ContentChallengePage() {
             {/* Quest Info */}
             <div className="mb-8">
               <div className="flex items-center space-x-2 mb-2">
-                <FireIcon className="w-6 h-6 text-orange-500" />
+                <FireIcon className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {quest.title}
                 </h1>
@@ -278,7 +278,7 @@ export default function ContentChallengePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 mb-6"
+              className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl p-6 mb-6 border border-subtle"
             >
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Question {currentQuestion + 1}
@@ -296,7 +296,7 @@ export default function ContentChallengePage() {
                       onClick={() => handleAnswer(currentQ.id, option)}
                       className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
                         userAnswers[currentQ.id] === option
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                       }`}
                     >
@@ -315,7 +315,7 @@ export default function ContentChallengePage() {
                     value={userAnswers[currentQ.id] || ''}
                     onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
                     placeholder="Type your answer here..."
-                    className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-amber-500 focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   />
                 </div>
               )}
@@ -333,7 +333,7 @@ export default function ContentChallengePage() {
               
               <button
                 onClick={handleNext}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
               >
                 {currentQuestion === quest.questions.length - 1 ? 'Submit' : 'Next'}
               </button>
@@ -365,8 +365,8 @@ export default function ContentChallengePage() {
                 }
               </p>
               
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 mb-6">
-                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+              <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl p-6 mb-6 border border-subtle">
+                <div className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">
                   {score}%
                 </div>
                 <p className="text-gray-600 dark:text-gray-400">
@@ -384,7 +384,7 @@ export default function ContentChallengePage() {
                   setScore(null);
                   setTimeRemaining(quest.timeLimit || null);
                 }}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
               >
                 Try Again
               </button>
