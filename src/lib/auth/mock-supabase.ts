@@ -37,9 +37,6 @@ export class MockSupabaseAuth {
    * 模拟登录
    */
   async signInWithPassword(credentials: { email: string; password: string }): Promise<AuthResponse> {
-    if (!isLocalDevelopment()) {
-      throw new Error('Mock authentication is only available in development mode');
-    }
 
     // 根据邮箱确定用户类型
     let userType: MockUserType = 'user';
@@ -72,9 +69,6 @@ export class MockSupabaseAuth {
    * 模拟注册
    */
   async signUp(credentials: { email: string; password: string }): Promise<AuthResponse> {
-    if (!isLocalDevelopment()) {
-      throw new Error('Mock authentication is only available in development mode');
-    }
 
     // 创建新用户
     const newUser = createMockUser('user');
@@ -161,15 +155,23 @@ export class MockSupabaseAuth {
    * 监听认证状态变化
    */
   onAuthStateChange(callback: (event: string, session: Session | null) => void) {
-    // 模拟状态变化
-    if (this.currentSession) {
-      callback('SIGNED_IN', this.currentSession);
-    } else {
-      callback('SIGNED_OUT', null);
-    }
+    // 延迟执行，避免初始化时立即触发SIGNED_OUT
+    setTimeout(() => {
+      if (this.currentSession) {
+        callback('SIGNED_IN', this.currentSession);
+      } else {
+        callback('SIGNED_OUT', null);
+      }
+    }, 100);
 
-    // 返回取消监听的函数
-    return () => {};
+    // 返回 Supabase 期望的格式
+    return {
+      data: {
+        subscription: {
+          unsubscribe: () => {}
+        }
+      }
+    };
   }
 }
 

@@ -157,11 +157,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
             toast.success('登录成功！');
           }
         } else if (event === 'SIGNED_OUT') {
+          // 只在用户主动登出时显示toast，避免初始化时的误报
+          const isInitialLoad = loading;
           setUser(null);
           setProfile(null);
           
-          // 只在非模拟认证模式下显示toast
-          if (!isLocalDevelopment()) {
+          // 只在非模拟认证模式且非初始化时显示toast
+          if (!isLocalDevelopment() && !isInitialLoad) {
             toast.success('已退出登录');
           }
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {

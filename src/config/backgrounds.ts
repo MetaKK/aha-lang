@@ -36,7 +36,7 @@ export interface QuestBackgroundConfig {
 export const harryPotterBackgrounds: QuestBackgroundConfig = {
   reading: {
     type: 'image',
-    src: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1920&h=1080&fit=crop&q=80',
+    src: 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=1920&h=1080&fit=crop&q=80',
     overlay: {
       color: 'rgba(0, 0, 0, 0.4)',
       opacity: 0.6,

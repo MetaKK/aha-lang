@@ -40,7 +40,7 @@ export const FormInput = memo(forwardRef<HTMLInputElement, FormInputProps>(({
   const containerClass = `flex items-center w-full text-[15px] leading-[30px] relative rounded-md cursor-text pt-1 pb-1 px-2.5 mt-1 mb-2 transition-all duration-100 ${
     isFocused 
       ? 'ring-2 ring-blue-500/20 border border-blue-500/30 bg-white/50 dark:bg-gray-800/50' 
-      : 'bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50'
+      : 'bg-gray-50/50 dark:bg-gray-800/50 border border-subtle'
   }`;
 
   const inputClass = "text-[15px] leading-[30px] border-none bg-transparent w-full block resize-none p-0 outline-none text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400";

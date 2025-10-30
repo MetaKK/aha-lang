@@ -122,7 +122,7 @@ export function FinalSettlement({
           )}
         </AnimatePresence>
 
-        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-subtle overflow-hidden">
           {/* Header */}
           <div className="relative p-8 pb-6">
             {/* 背景装饰 */}

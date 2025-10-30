@@ -100,8 +100,21 @@ export function createMockSession(userType: MockUserType): MockSession {
  * 检查是否为本地开发环境
  */
 export function isLocalDevelopment(): boolean {
-  return process.env.NODE_ENV === 'development' && 
-         process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true';
+  // 允许在Vercel预览环境也使用测试账号
+  const isDev = process.env.NODE_ENV === 'development';
+  const isPreview = process.env.VERCEL_ENV === 'preview';
+  const isMockEnabled = process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true';
+  
+  console.log('[Mock Auth] Environment check:', {
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    isDev,
+    isPreview,
+    isMockEnabled,
+    result: (isDev || isPreview) && isMockEnabled
+  });
+  
+  return (isDev || isPreview) && isMockEnabled;
 }
 
 /**

@@ -1,5 +1,7 @@
 // Mock Data for Media Cards
 import type { FeedCard } from '@/types/feed';
+import { LIU_CIXIN_STORIES } from '@/data/liucixin-stories';
+import { TWITTER_CONTENT } from '@/data/twitter-content';
 
 export const createMockData = (): FeedCard[] => {
   const authors = [
@@ -12,7 +14,49 @@ export const createMockData = (): FeedCard[] => {
 
   const baseTime = Date.now();
 
-  return [
+  // 创建刘慈欣小说Quest卡片
+  const liuCixinQuestCards: FeedCard[] = LIU_CIXIN_STORIES.map((story, index) => ({
+    id: `quest-${story.id}`,
+    type: 'novel',
+    author: {
+      id: `author-${story.id}`,
+      handle: 'ahalearn',
+      displayName: 'Aha Learning',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ahalearn',
+      verified: true,
+      badges: ['verified', 'organization'],
+    },
+    content: `🚀 NEW: ${story.title} Quest! Experience Liu Cixin's mind-bending science fiction through immersive English practice. Perfect for ${story.difficulty === 2 ? 'A2' : story.difficulty === 3 ? 'B1' : 'B2+'} learners.`,
+    createdAt: new Date(baseTime - 1000 * 60 * (index + 10)).toISOString(),
+    stats: { 
+      replies: Math.floor(Math.random() * 50) + 20, 
+      reposts: Math.floor(Math.random() * 100) + 50, 
+      likes: Math.floor(Math.random() * 500) + 200, 
+      bookmarks: Math.floor(Math.random() * 100) + 30, 
+      views: Math.floor(Math.random() * 2000) + 1000 
+    },
+    viewer: { liked: false, reposted: false, bookmarked: false },
+    novel: {
+      id: story.id,
+      title: story.title,
+      excerpt: story.excerpt,
+      coverImage: story.coverImage,
+      difficulty: story.difficulty,
+      totalChapters: story.chapters.length,
+      currentChapter: 1,
+      tags: story.tags,
+      language: story.language,
+      estimatedTime: story.estimatedTime,
+      questType: 'comprehension',
+    },
+  }));
+
+  const items: FeedCard[] = [
+    // 添加Twitter内容
+    ...TWITTER_CONTENT,
+    
+    // 添加刘慈欣小说Quest卡片
+    ...liuCixinQuestCards,
     // Multi-Chapter Quest Card - Harry Potter
     {
       id: 'hp-quest',
@@ -440,4 +484,19 @@ export const createMockData = (): FeedCard[] => {
       ],
     },
   ];
+  
+  // 将所有内容混合并随机排布
+  const combined: FeedCard[] = [
+    ...TWITTER_CONTENT,
+    ...liuCixinQuestCards,
+    ...items,
+  ];
+
+  // Fisher-Yates 洗牌算法实现随机排布
+  for (let i = combined.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [combined[i], combined[j]] = [combined[j], combined[i]];
+  }
+
+  return combined;
 };

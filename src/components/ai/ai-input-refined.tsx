@@ -156,7 +156,7 @@ export function AIInputRefined({
           "relative overflow-hidden",
           "bg-white/95 dark:bg-gray-900/95",
           "backdrop-blur-xl",
-          "border border-gray-200/50 dark:border-gray-700/50",
+          "border border-subtle",
           "rounded-2xl",
           "shadow-lg shadow-black/5 dark:shadow-black/20",
           "transition-all duration-300 ease-out",

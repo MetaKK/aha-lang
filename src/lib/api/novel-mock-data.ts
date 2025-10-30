@@ -3,6 +3,8 @@
  * 用于Quest挑战系统
  */
 
+import { LIU_CIXIN_STORIES, getLiuCixinStoryById } from '@/data/liucixin-stories';
+
 export interface NovelContent {
   id: string;
   title: string;
@@ -432,6 +434,10 @@ export function getContentById(id: string): NovelContent | undefined {
   if (id === 'hp-quest' || id === 'hp-a2') {
     return QUEST_CONTENT_CONFIG['hp-quest'] as NovelContent;
   }
+  
+  // 刘慈欣小说
+  const liuCixinStory = getLiuCixinStoryById(id);
+  if (liuCixinStory) return liuCixinStory;
   
   return undefined;
 }

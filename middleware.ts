@@ -50,6 +50,15 @@ export function middleware(request: NextRequest) {
 
   // 如果是受保护的路由，检查认证状态
   if (isProtectedRoute) {
+    // 检查是否启用了Mock Auth（在预览环境）
+    const isMockAuthEnabled = process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true';
+    const isPreview = process.env.VERCEL_ENV === 'preview';
+    
+    // 如果是Mock Auth模式，直接通过（让前端处理认证）
+    if (isMockAuthEnabled && (process.env.NODE_ENV === 'development' || isPreview)) {
+      return NextResponse.next();
+    }
+    
     // 检查Supabase认证token
     const accessToken = request.cookies.get('sb-access-token')?.value;
     const refreshToken = request.cookies.get('sb-refresh-token')?.value;
